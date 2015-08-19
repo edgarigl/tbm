@@ -1,0 +1,4 @@
+HOWTO run
+---------
+% make check
+

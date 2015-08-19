@@ -1,0 +1,16 @@
+ARCH=none
+
+TEST_CONFIGS += configs/vexpress-a32.cfg
+TEST_CONFIGS += configs/vexpress-a64.cfg
+
+foreach_cfg = for c in $(1); do $(2) CFG=$$c $(3); done
+
+# Override the default rules.
+OVERRIDE_ALL=y
+all:
+	$(call foreach_cfg, $(TEST_CONFIGS), $(MAKE), $@)
+
+OVERRIDE_CLEAN=y
+.PHONY: clean
+clean:
+	$(call foreach_cfg, $(TEST_CONFIGS), $(MAKE), $@)
