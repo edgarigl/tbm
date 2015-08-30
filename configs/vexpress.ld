@@ -54,7 +54,7 @@ SECTIONS
 	. = . + 0x8000;
 	_heap_end = .;
 
-	. = ALIGN(4096);
+	. = ALIGN(1048576);
 	_pt_start = .;
 	. = . + 0x1200000;
 	_pt_end = .;
