@@ -5,39 +5,6 @@
 #include "sys.h"
 #include "testcalls.h"
 
-static inline uint32_t a32_get_scr(void)
-{
-	uint32_t scr;
-	__asm__ __volatile__ ("mrc\tp15, 0, %0, c1, c1, 0\n" : "=r" (scr));
-	return scr;
-}
-
-static inline void a32_set_scr(uint32_t scr)
-{
-	__asm__ __volatile__ ("mcr\tp15, 0, %0, c1, c1, 0\n" : : "r" (scr));
-}
-
-static inline uint64_t a32_get_hcr(void)
-{
-	union {
-		uint32_t u32[2];
-		uint64_t u64;
-	} hcr;
-	__asm__ __volatile__ ("mrc\tp15, 4, %0, c1, c1, 0\n" : "=r" (hcr.u32[0]));
-	__asm__ __volatile__ ("mrc\tp15, 4, %0, c1, c1, 4\n" : "=r" (hcr.u32[1]));
-	return hcr.u64;
-}
-
-static inline void a32_set_hcr(uint64_t v)
-{
-	union {
-		uint32_t u32[2];
-		uint64_t u64;
-	} hcr = { .u64 = v };
-	__asm__ __volatile__ ("mcr\tp15, 4, %0, c1, c1, 0\n" : : "r" (hcr.u32[0]));
-	__asm__ __volatile__ ("mcr\tp15, 4, %0, c1, c1, 4\n" : : "r" (hcr.u32[1]));
-}
-
 static void check_hcr_mask(void)
 {
 #if 0
