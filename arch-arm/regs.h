@@ -1,3 +1,16 @@
+
+#define SCR_NS        (1U << 0)
+#define SCR_IRQ       (1U << 1)
+#define SCR_FIQ       (1U << 2)
+#define SCR_EA        (1U << 3)
+#define SCR_SMD       (1U << 7)
+#define SCR_HCE       (1U << 8)
+#define SCR_SIF       (1U << 9)
+#define SCR_RW        (1U << 10)
+#define SCR_ST        (1U << 11)
+#define SCR_TWI       (1U << 12)
+#define SCR_TWE       (1U << 13)
+
 static inline uint32_t a32_get_scr(void)
 {
 	uint32_t scr;
