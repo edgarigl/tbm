@@ -48,6 +48,4 @@ void udelay(unsigned int us);
 #define IS_ARRAY(x)     (!__builtin_types_compatible_p(typeof(x), \
                                                         typeof(&x[0])))
 #define ARRAY_SIZE(x)   (sizeof (x) / sizeof (*x) + ZBUILDERR(!IS_ARRAY(x)))
-
-#define ARRAY_SIZE(x)     (sizeof (x) / sizeof (*x) + ZBUILDERR(!IS_ARRAY(x)))
 #endif
