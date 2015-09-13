@@ -44,6 +44,18 @@ static inline void a32_set_hcr(uint64_t v)
 	__asm__ __volatile__ ("mcr\tp15, 4, %0, c1, c1, 4\n" : : "r" (hcr.u32[1]));
 }
 
+static inline uint64_t a32_get_vpidr(void)
+{
+	uint32_t v;
+	__asm__ __volatile__ ("mrc\tp15, 4, %0, c0, c0, 0\n" : "=r" (v));
+	return v;
+}
+
+static inline void a32_set_vpidr(uint32_t v)
+{
+	__asm__ __volatile__ ("mcr\tp15, 4, %0, c0, c0, 0\n" : : "r" (v));
+}
+
 static inline uint64_t a32_get_vmpidr(void)
 {
 	uint32_t v;
