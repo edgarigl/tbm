@@ -70,14 +70,18 @@ static void check_vttbr(bool has_el2)
 
 	a32_set_vttbr(0x10000);
 	v = a32_get_vttbr();
-	assert(v == 0x10000);
+	if (has_el2) {
+		assert(v == 0x10000);
+	} else {
+		assert(v == 0x0);
+	}
 
 	a32_set_scr(scr);
 }
 
 void a32_check_regs(bool has_el2)
 {
-	printf("%s:\n", __func__);
+	printf("%s: has_el2=%d\n", __func__, has_el2);
 	check_vttbr(has_el2);
 	check_vpidr(has_el2);
 	check_vmpidr(has_el2);
