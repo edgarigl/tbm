@@ -24,6 +24,8 @@ The final binaries can be found in the build/* dir.
 To run the vexpress-a64 tests, do the following:
 qemu-system-aarch64 -M vexpress-a15,secure=on -cpu cortex-a53 -m 1024 -display none -serial stdio -kernel build/vexpress/a64/ctest-bare
 
+To run the vexpress-a32 tests, do the following:
+qemu-system-arm -M vexpress-a15,secure=on -serial stdio -display none -kernel build/vexpress/a32/ctest-bare
 
 Directory structure:
 
