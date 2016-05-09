@@ -1,1 +1,0 @@
-../drivers-ronaldo/files-uart.mk

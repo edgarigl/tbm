@@ -42,7 +42,7 @@ UNITNAME ?= $(ARCH)
 TESTSUITE_ARCH ?= testsuite-$(ARCH)
 TESTSUITE_BOARD ?= testsuite-$(BOARD)
 PLAT_DIR ?= plat/$(BOARD)
-DRIVER_BOARD ?= drivers-$(BOARD)
+DRIVER_BOARD ?= drivers/$(BOARD)
 APPDIR ?= app/$(BOARD)/$(UNITNAME)$(UNIT_TNAME)
 
 ifneq "$(ARCH)" "none"
