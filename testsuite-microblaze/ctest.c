@@ -9,6 +9,11 @@ extern void check_mul(void);
 extern void check_div(void);
 extern void check_mov(void);
 
+__attribute__ ((weak)) void check_bitfield(void)
+{
+
+}
+
 void check_simple_arg(int a) {
 	puts(__func__);
         if (a)
@@ -103,16 +108,23 @@ const char endian_s[] = "Little";
 const char endian_s[] = "Big";
 #endif
 
-int cpu_test(int argc, char **argv)
+void cpu_test(void)
 {
+	uint8_t version_code;
+	uint32_t pvr0;
 	int x;
 
-	printf("\n\nMicroBlaze %s endian CPU. " __DATE__ " " __TIME__ "\n", 
-			endian_s);
+	__asm__ __volatile__ ("mfs\t%0, rpvr0\n" : "=r" (pvr0));
+	version_code = pvr0 >> 8;
+	printf("pvr=%x\n", pvr0);
+
+	printf("\n\nMicroBlaze v=%x %s endian CPU. " __DATE__ " " __TIME__ "\n",
+			version_code, endian_s);
 
 /*	petasupport_test_loop_local(); */
 #if 1
 #if 1
+	check_bitfield();
 	check_stackprot();
 	check_clz();
 	check_mbar();
@@ -145,7 +157,6 @@ int cpu_test(int argc, char **argv)
 #endif
 
 	printf("ctest done at %x\n", clock());
-	return 0;
 }
 
 __testcall(cpu_test);
