@@ -68,6 +68,7 @@ bool aarch64_mmu_map(struct mmu_ctx *mmu,
 						.ap = ap,
 						.attrindex = attridx,
 						.addr = aarch64_block_addr(mmu, level, pa),
+						.xn = prot & PROT_EXEC ? 0 : 1,
 					},
 			        };
 				D(printf("\tblock[L%d][%p] -> %lx ap=%x\n",
@@ -339,5 +340,8 @@ void aarch64_mmu_setup(struct mmu_ctx *mmu, unsigned int el, bool enable)
 		default:
 			assert(0);
 		}
+		__asm__ __volatile__ (	"ic iallu\n"
+					"dsb nsh\n"
+					"isb\n");
 	}
 }

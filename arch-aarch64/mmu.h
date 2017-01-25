@@ -61,15 +61,20 @@ struct ptdesc {
 			unsigned int swdef : 4;
 		} sw;
 		struct {
+			/* Bits 0 - 7.  */
 			unsigned int is_valid:1;
 			unsigned int is_table:1;
 			unsigned int attrindex : 3;
 			unsigned int ns : 1;
 			unsigned int ap : 2;
+			/* Bits 8 - 47  */
 			unsigned int sh : 2;
 			unsigned int af : 1;
 			unsigned int ng : 1;
 			uintptr_t addr : 36;
+			/* Bits 48 - 51 */
+			unsigned int reserved : 4;
+			/* Bits 52 - */
 			unsigned int contigous : 1;
 			unsigned int pxn : 1;
 			unsigned int xn : 1;
@@ -190,6 +195,7 @@ static inline void aarch64_mmu_tlb_flush(struct mmu_ctx *mmu, unsigned int el)
 		__asm__ __volatile__ ("tlbi alle3\n");
 		break;
 	}
+	__asm__ __volatile__ ("isb\n");
 }
 
 static inline uintptr_t aarch64_addr_to_offset(struct mmu_ctx *mmu,

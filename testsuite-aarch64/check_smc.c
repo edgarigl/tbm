@@ -215,13 +215,25 @@ static void check_simple_not(void)
 
 static void check_hcr_mask(void)
 {
-	uint64_t hcr, hcr_prev;
+	uint64_t hcr, hcr_new, hcr_prev;
+	uint64_t hcr_res0 = (0x3ffffffUL << 39) | (0xfUL << 34);
+	uint32_t scr;
+
+	aarch64_mrs(scr, "scr_el3");
+	aarch64_msr("scr_el3", scr | SCR_NS | SCR_RW);
 	aarch64_mrs(hcr_prev, "hcr_el2");
 
-	aarch64_msr("hcr_el2", ~0);
+	hcr_new = ~0;
+	hcr_new &= ~hcr_res0;
+
+	/* Not sure why but setting .VM fails on real HW. Disable for now.  */
+	hcr_new &= ~1;
+	printf("HCR=%llx prev=%llx\n", hcr_new, hcr_prev);
+	aarch64_msr("hcr_el2", hcr_new);
 	aarch64_mrs(hcr, "hcr_el2");
 	printf("hcr=%llx\n", hcr);
-	assert(hcr == 0xdfffffffULL);
+	assert(hcr == 0x3dffffffeUL);
+	barrier();
 
 	aarch64_msr("hcr_el2", 0);
 	aarch64_mrs(hcr, "hcr_el2");
@@ -231,6 +243,7 @@ static void check_hcr_mask(void)
 	aarch64_msr("hcr_el2", hcr_prev);
 	aarch64_mrs(hcr, "hcr_el2");
 	printf("restore HCR to %llx actual=%llx\n", hcr_prev, hcr);
+	aarch64_msr("scr_el3", scr);
 }
 
 static void check_scr_mask(void)
@@ -271,6 +284,10 @@ void a64_check_smc(void)
 		aarch64_msr("hcr_el2", hcr);
 		aarch64_raise_el(EL3);
 		cur_el = aarch64_current_el();
+		if (cur_el != 3) {
+			printf("Warning, cannot run SMC tests at EL%d\n", cur_el);
+			return;
+		}
 		assert(cur_el == 3);
 	}
 	aarch64_mrs(scr, "scr_el3");

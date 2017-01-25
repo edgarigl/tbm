@@ -25,6 +25,9 @@ void a64_dcache_invalidate(struct aarch64_cache_descr *cd, bool flush)
 		}
 
 		switch (cd->level[i].D.ways) {
+		case 2:
+			way_shift = 32 - 1;
+			break;
 		case 4:
 			way_shift = 32 - 2;
 			break;
@@ -32,6 +35,7 @@ void a64_dcache_invalidate(struct aarch64_cache_descr *cd, bool flush)
 			way_shift = 32 - 4;
 			break;
 		default:
+			printf("ways=%d\n", cd->level[i].D.ways);
 			assert(0);
 		}
 

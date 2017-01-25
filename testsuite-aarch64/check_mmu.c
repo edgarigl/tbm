@@ -425,7 +425,14 @@ static struct crt_runner runner = {
 };
 void check_mmu(void)
 {
+	unsigned int cur_el = aarch64_current_el();
+
 	printf("%s\n", __func__);
+	if (cur_el == 1) {
+		printf("Can't run MMU test at EL%d\n", cur_el);
+		return;
+	}
+
 	crt_runner_init(&runner);
 	crt_run_one_func(&runner, crt_map_direct1_cb);
 

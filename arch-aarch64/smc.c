@@ -34,7 +34,7 @@ bool plat_psci_cpu_off(unsigned int cpu)
 	return false;
 }
 
-__attribute__((naked, noreturn))
+__attribute__((noreturn))
 void secondary_entry(void)
 {
 	const unsigned int target_el = 2;
@@ -71,7 +71,7 @@ uintptr_t aarch64_psci_on(uint64_t id, uint64_t cpu,
 	ok = plat_psci_cpu_on(cpu, (uintptr_t) _secondary_entry_head);
 	mb();
 	ibarrier();
-	return !ok;
+	return ok ? PSCI_SUCCESS : -1;
 }
 
 uintptr_t aarch64_psci_off(uint64_t id, uint64_t cpu)

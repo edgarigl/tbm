@@ -1,6 +1,8 @@
 #ifndef __GIC__
 #define __GIC__
 
+#include "reg-gic.h"
+
 static inline void gicd_set_irq_group(char *base, unsigned int irq,
 					bool group)
 {
@@ -22,6 +24,12 @@ static inline void gicd_set_sgi(char *base, unsigned cpu,
 	r = 1 << (16 + cpu);
 	r |= irq;
 	writel(base + GICD_SGIR, r);
+}
+
+static inline void gicd_clear_sgi(char *base, unsigned cpu,
+                                unsigned int irq)
+{
+	writeb(base + GICD_CPENDSGIR + irq, 0xff);
 }
 
 static inline void gicd_set_pending(char *base, unsigned int irq, bool v)

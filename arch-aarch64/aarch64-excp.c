@@ -4,7 +4,7 @@
 
 #define D(x)
 
-static unsigned int excp_count[3][EC_AA64_BKPT + 1];
+static unsigned int excp_count[4][EC_AA64_BKPT + 1];
 static unsigned int ex_data_abort_expected = false;
 
 void aarch64_excp_dataabort_expect(unsigned int f)
@@ -19,7 +19,7 @@ unsigned int aarch64_excp_count(unsigned int el, unsigned int ec)
 {
 	assert(el > 0 && el <= ARRAY_SIZE(excp_count));
 	assert(ec < ARRAY_SIZE(excp_count[0]));
-	return excp_count[el - 1][ec];
+	return excp_count[el][ec];
 }
 
 void aarch64_excp_decode(struct excp_frame *f)
@@ -32,7 +32,7 @@ void aarch64_excp_decode(struct excp_frame *f)
 	uint64_t r = 0;
 
 	assert(ec < ARRAY_SIZE(excp_count[0]));
-	excp_count[el - 1][ec]++;
+	excp_count[el][ec]++;
 
 	switch (ec) {
 	case EC_UNCATEGORIZED:
@@ -86,14 +86,26 @@ void aarch64_excp_decode(struct excp_frame *f)
 	f->x[0] = r;
 }
 
-static unsigned int fiq_count[3] = {0};
+static uint64_t irq_stamp[4];
+static unsigned int fiq_count[4] = {0};
+static unsigned int irq_count[4] = {0};
 
 unsigned int aarch64_get_nr_fiqs(unsigned int el)
 {
-	assert(el >= 1 && el <= 3);
-	return fiq_count[el - 1];
+	return fiq_count[el];
 }
 
+unsigned int aarch64_get_nr_irqs(unsigned int el)
+{
+	return irq_count[el];
+}
+
+uint64_t aarch64_irq_get_stamp(unsigned int el)
+{
+	return irq_stamp[el];
+}
+
+static aarch64_excp_h_p irq_h = NULL;
 static aarch64_excp_h_p fiq_h = NULL;
 
 void aarch64_set_fiq_h(aarch64_excp_h_p f)
@@ -106,12 +118,43 @@ aarch64_excp_h_p aarch64_get_fiq_h(void)
 	return fiq_h;
 }
 
+void aarch64_set_irq_h(aarch64_excp_h_p f)
+{
+	irq_h = f;
+}
+
+aarch64_excp_h_p aarch64_get_irq_h(void)
+{
+	return irq_h;
+}
+
 void aarch64_fiq(struct excp_frame *f)
 {
 	const unsigned int el = aarch64_current_el();
-	fiq_count[el - 1]++;
+	fiq_count[el]++;
 
 	if (fiq_h) {
 		fiq_h(f);
+	}
+}
+
+void aarch64_irq(struct excp_frame *f)
+{
+	unsigned int el;
+	uint64_t t;
+
+	/* There's an isb in the asm stub protecting the counter read
+	 * from happening before aarch64_irq. Even without it, it
+	 * would spectacular if the CPU could speculatively take
+	 * an interrupt.  */
+	aarch64_mrs(t, "cntvct_el0");
+	__asm__ __volatile__ ("isb");
+	el = aarch64_current_el();
+
+	irq_stamp[el] = t;
+	irq_count[el]++;
+
+	if (irq_h) {
+		irq_h(f);
 	}
 }

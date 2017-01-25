@@ -41,7 +41,6 @@ BOARD ?= ronaldo
 UNITNAME ?= $(ARCH)
 TESTSUITE_ARCH ?= testsuite-$(ARCH)
 TESTSUITE_BOARD ?= testsuite-$(BOARD)
-PLAT_DIR ?= plat/$(BOARD)
 DRIVER_BOARD ?= drivers/$(BOARD)
 APPDIR ?= app/$(BOARD)/$(UNITNAME)$(UNIT_TNAME)
 
@@ -61,20 +60,28 @@ SIZE	= $(CROSS)size
 OBJCOPY	= $(CROSS)objcopy
 OBJDUMP	= $(CROSS)objdump
 
+DD	= dd
+
 BOARD_ = $(subst -,_,$(BOARD))
 
-CFLAGS  += -Wall -g3 -O2 -nostdlib -I mb-testsuite
-CFLAGS  += -ffunction-sections -fdata-sections
+OPTFLAGS += -Wall -g3 -O2 -nostdlib -I mb-testsuite
+OPTFLAGS += -ffunction-sections -fdata-sections
+OPTFLAGS += -ftest-coverage
+
+CFLAGS  += $(OPTFLAGS)
 CFLAGS  += -ftest-coverage
 #CFLAGS  += -Werror
+CPPFLAGS += -D__tbm__
 CPPFLAGS += -D__BOARD__="$(BOARD_)" -D__UNIT__="$(UNITNAME)"
 CPPFLAGS += -D__$(BOARD_)__ -D__$(UNITNAME)__
 CPPFLAGS += -nostdinc -I $(CURDIR)
 CPPFLAGS += -I arch-$(ARCH)/
 CPPFLAGS += -I $(CURDIR)/libminic/include
+ASFLAGS += $(OPTFLAGS)
 ASFLAGS += -D__ASSEMBLY__
 ASFLAGS += -g
 
+LDFLAGS += $(OPTFLAGS)
 #LDFLAGS += -Wl,--no-relax
 LDFLAGS += -Wl,-relax
 LDFLAGS += -nostdlib
@@ -96,13 +103,12 @@ BUILD_SUBDIRS += $(TESTSUITE_ARCH)
 endif
 
 BOARD_SRCS = $(shell [ -d $(TESTSUITE_BOARD) ] && find $(TESTSUITE_BOARD)/ -maxdepth 1 -name \*.c)
-BOARD_SRCS += $(shell [ -d $(PLAT_DIR) ] && find $(PLAT_DIR)/ -maxdepth 1 -name \*.c)
 BOARD_OBJS = $(BOARD_SRCS:.c=.o)
 
 DRIVER_SRCS ?= $(shell [ -d $(DRIVER_BOARD) ] && find $(DRIVER_BOARD)/ -maxdepth 1 -name \*.c)
 DRIVER_OBJS = $(DRIVER_SRCS:.c=.o)
 
-APP_SRCS = $(shell [ -d $(APPDIR) ] && find $(APPDIR)/ -maxdepth 1 -name \*.c)
+APP_SRCS += $(shell [ -d $(APPDIR) ] && find $(APPDIR)/ -maxdepth 1 -name \*.c)
 APP_OBJS = $(APP_SRCS:.c=.o)
 CPPFLAGS += -I $(APPDIR)/
 
@@ -121,11 +127,9 @@ TBM_LIBFDT_SRCS = $(addprefix $(LIBFDT_DIR)/, $(LIBFDT_SRCS))
 TBM_LIBFDT_OBJS = $(TBM_LIBFDT_SRCS:.c=.o)
 
 CPPFLAGS += -I $(CURDIR)/$(DRIVER_BOARD)
-CPPFLAGS += -I $(CURDIR)/$(PLAT_DIR)
 BUILD_SUBDIRS += configs/
 BUILD_SUBDIRS += $(LIBVERIF_DIR)
 BUILD_SUBDIRS += $(EHASH_DIR)
-BUILD_SUBDIRS += $(PLAT_DIR)
 BUILD_SUBDIRS += $(TESTSUITE_BOARD)
 BUILD_SUBDIRS += $(DRIVER_BOARD)
 BUILD_SUBDIRS += $(APPDIR)
@@ -173,7 +177,7 @@ include Rules.mk
 
 .PHONY: libminic-rule
 libminic-rule:
-	$(MAKE) -C libminic BUILDDIR=../$(BUILDDIR)libminic/ CPUFLAG="$(CPUFLAG)"
+	$(MAKE) -C libminic BUILDDIR=../$(BUILDDIR)libminic/ CFLAGS="$(CFLAGS)" CPUFLAG="$(CPUFLAG)"
 
 BINSECTIONS = .text .data
 $(TARGETBIN): $(TARGET)

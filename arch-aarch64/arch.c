@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "sys.h"
 
-void __arch_early_init(void)
+__attribute__ ((weak)) void __arch_early_init(void)
 {
 	extern char vectors;
 	const unsigned int current_el = aarch64_current_el();
@@ -37,7 +37,7 @@ void __arch_early_init(void)
 		aarch64_msr("tcr_el1", 0);
 		ibarrier();
 		mb();
-		__asm__ __volatile__ ("tlbi alle1\n");
+		__asm__ __volatile__ ("tlbi vmalle1\n");
 		break;
 	}
 	ibarrier();
@@ -45,4 +45,8 @@ void __arch_early_init(void)
 
 void arch_init(void)
 {
+	uint32_t midr;
+
+	__asm__ __volatile__ ("mrs\t%0, midr_el1" : "=r" (midr));
+	printf("MIDR=%x\n", midr);
 }

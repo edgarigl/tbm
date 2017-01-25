@@ -17,6 +17,8 @@
 #define SMC_PSCI_CPU_ON		(0xc4000003)
 #define SMC_PSCI_MAX		SMC_PSCI_CPU_ON
 
+#define PSCI_SUCCESS 0
+
 bool plat_psci_cpu_on(unsigned int cpu, uintptr_t entry);
 bool plat_psci_cpu_off(unsigned int cpu);
 

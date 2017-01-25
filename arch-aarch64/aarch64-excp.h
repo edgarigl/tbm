@@ -44,6 +44,10 @@ typedef void (*aarch64_excp_h_p)(struct excp_frame *f);
 
 void aarch64_set_fiq_h(aarch64_excp_h_p f);
 aarch64_excp_h_p aarch64_get_fiq_h(void);
+void aarch64_set_irq_h(aarch64_excp_h_p f);
+aarch64_excp_h_p aarch64_get_irq_h(void);
+uint64_t aarch64_irq_get_stamp(unsigned int el);
+
 unsigned int aarch64_get_nr_fiqs(unsigned int el);
 unsigned int aarch64_excp_count(unsigned int el, unsigned int ec);
 void aarch64_excp_dataabort_expect(unsigned int f);

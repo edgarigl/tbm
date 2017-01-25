@@ -4,7 +4,9 @@
 	.balign 32
 	.global vectors
 vectors:
-	/* HW reset.  */
+
+	/* Valid Linux Image header.  */
+	/* HW reset vector.  */
 	ldr	x16, =_start
 	br	x16
 
@@ -13,7 +15,7 @@ vectors:
 	/* image size.  */
 	.dword	0
 	/* flags.  */
-	.dword	0
+	.dword	8
 	/* RES0  */
 	.dword	0
 	.dword	0
@@ -23,10 +25,18 @@ vectors:
 	.dword	0x644d5241
 	/* RES0  */
 	.dword	0
-
+	/* End of Image header.  */
 
 	.org	0x200
 	b	excp_decode
+
+	.org	0x280
+	store_all_regs
+	mov	x0, sp
+	isb
+	ldr	x17, =aarch64_irq
+	blr	x17
+	b	ret_from_excp
 
 	.org	0x300
 	store_all_regs

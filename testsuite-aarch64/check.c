@@ -40,8 +40,10 @@ static void a64_test(void)
 	a64_check_idef_ldr(0xeddeeddeeddeULL);
 	a64_check_smc();
 	a64_check_el_switch();
-//	a64_check_timer();
+#ifndef __xen__
+	a64_check_timer();
 	check_mmu();
+#endif
 }
 
 __testcall(a64_test);
