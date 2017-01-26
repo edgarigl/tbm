@@ -30,11 +30,13 @@ static uint64_t freq_k;
 static unsigned int el;
 
 struct {
+	int64_t avg;			/* Moving average k=0.125  */
 	uint64_t max_latency;
 	uint64_t min_latency;
-	uint64_t max_warm_latency;
+	uint64_t max_warm_latency;	/* Max seen after initial warmup runs.  */
 	uint64_t rounds;
 } st = {
+	.avg = 0,
 	.max_latency = 0,
 	.max_warm_latency = 0,
 	.min_latency = -1LL,
@@ -44,13 +46,15 @@ struct {
 
 void show_stats(void)
 {
-	printf("latency: max=%lld warm_max=%lld min=%lld\n",
-		st.max_latency, st.max_warm_latency, st.min_latency);
+	printf("latency (ns): max=%lld warm_max=%lld min=%lld avg=%lld\n",
+		st.max_latency, st.max_warm_latency, st.min_latency, st.avg);
 }
 
 void update_stats(uint64_t latency)
 {
 	bool update = false;
+	int64_t diff;
+	int64_t prev_avg = st.avg;
 
 	st.rounds++;
 
@@ -69,6 +73,18 @@ void update_stats(uint64_t latency)
 	if (latency < st.min_latency) {
 		st.min_latency = latency;
 		update = true;
+	}
+
+	/* Moving average.  */
+	if (st.avg == 0) {
+		st.avg = latency;
+		update = true;
+	} else {
+		/* Moving average k=0.125 */
+		diff = (int64_t)latency - (int64_t)st.avg;
+		st.avg += diff / 8;
+		if (st.avg != prev_avg)
+			update = true;
 	}
 
 	if (update) {
