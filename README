@@ -13,6 +13,9 @@ make CFG=configs/test
 If you need to override the default toolchains:
 $ make CFG=configs/vexpress-a64.cfg CROSS=aarch64-myown-elf-
 
+ZynqMP APU setup:
+$ make CFG=configs/zynqmp-apu.cfg
+
 Or you can create a .config file, for example:
 $ cat .config
 MB_CROSS=microblazeel-xilinx-linux-gnu-
@@ -20,6 +23,9 @@ ARM_CROSS=arm-xilinx-linux-gnueabi-
 AARCH64_CROSS=aarch64-linux-gnu-
 
 The final binaries can be found in the build/* dir.
+
+To run the tests on the ZynqMP QEMU:
+qemu-system-aarch64 -M xlnx-zcu102 -serial stdio -kernel build/zynqmp/apu/ctest-bare
 
 To run the vexpress-a64 tests, do the following:
 qemu-system-aarch64 -M vexpress-a15,secure=on -cpu cortex-a53 -m 1024 -display none -serial stdio -kernel build/vexpress/a64/ctest-bare
