@@ -66,6 +66,17 @@ static inline void gicd_set_irq_target(char *base, unsigned int irq,
 	writel(base + GICD_ITARGETSR + wordoffset, r);
 }
 
+static inline void gicd_set_irq_prio(char *base, unsigned int irq,
+                                     uint8_t prio)
+{
+    writeb(base + GICD_IPRIORITYR + irq, prio);
+}
+
+static inline uint8_t gicd_get_irq_prio(char *base, unsigned int irq)
+{
+    return readb(base + GICD_IPRIORITYR + irq);
+}
+
 static inline void gicd_enable_irq(char *base, unsigned int irq)
 {
 	unsigned int offset = (irq / 32) * 4;
@@ -76,4 +87,16 @@ static inline void gicd_enable_irq(char *base, unsigned int irq)
 	r |= 1 << bitoffset;
 	writel(base + GICD_ISENABLER + offset, r);
 }
+
+static inline void gicd_disable_irq(char *base, unsigned int irq)
+{
+	unsigned int offset = (irq / 32) * 4;
+	unsigned int bitoffset = irq % 32;
+	uint32_t r;
+
+	r = readl(base + GICD_ISENABLER + offset);
+	r &= ~(1 << bitoffset);
+	writel(base + GICD_ISENABLER + offset, r);
+}
+
 #endif
