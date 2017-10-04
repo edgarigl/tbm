@@ -31,20 +31,10 @@ vectors:
 	b	excp_decode
 
 	.org	0x280
-	store_all_regs
-	mov	x0, sp
-	isb
-	ldr	x17, =aarch64_irq
-	blr	x17
-	b	ret_from_excp
+	b	irq_entry
 
 	.org	0x300
-	store_all_regs
-	mov	x0, sp
-	isb
-	ldr	x17, =aarch64_fiq
-	blr	x17
-	b	ret_from_excp
+	b	fiq_entry
 
 	.org	0x380
 	b	excp_decode
@@ -52,7 +42,31 @@ vectors:
 	.org	0x400
 	b	excp_decode
 
+	.org	0x480
+	b	irq_entry
+
+	.org	0x500
+	b	fiq_entry
+
 	.org	0x580
+	b	excp_decode
+
+irq_entry:
+	store_all_regs
+	mov	x0, sp
+	isb
+	ldr	x17, =aarch64_irq
+	blr	x17
+	b	ret_from_excp
+
+fiq_entry:
+	store_all_regs
+	mov	x0, sp
+	isb
+	ldr	x17, =aarch64_fiq
+	blr	x17
+	b	ret_from_excp
+
 excp_decode:
 	store_all_regs
 	mov	x0, sp
