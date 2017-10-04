@@ -87,6 +87,24 @@ static inline uint64_t aarch64_elr(unsigned int el)
 	return v;
 }
 
+static inline void aarch64_set_spsr(unsigned int el, uint64_t v)
+{
+	switch (el) {
+	case 0:
+		assert(0);
+		break;
+	case 1:
+		aarch64_msr("SPSR_EL1", v);
+		break;
+	case 2:
+		aarch64_msr("SPSR_EL2", v);
+		break;
+	case 3:
+		aarch64_msr("SPSR_EL3", v);
+		break;
+	}
+}
+
 static inline void aarch64_set_elr(unsigned int el, uint64_t v)
 {
 	switch (el) {
