@@ -1,11 +1,9 @@
-/* FIXME: We shouldn't be ifdefing here.  */
-#ifdef __xen__
-#define GIC_DIST_BASE ((void *) 0x3001000)
-#define GIC_CPU_BASE ((void *) 0x3002000)
-#else
-#define GIC_DIST_BASE ((void *) 0xf9010000)
-#define GIC_CPU_BASE ((void *) 0xf9020000)
+#if !defined(GIC_DIST_BASE_ADDR) || !defined(GIC_CPU_BASE_ADDR)
+# error Please specify GIC_DIST_BASE_ADDR and GIC_CPU_BASE_ADDR in the configuration file
 #endif
+
+#define GIC_DIST_BASE ((void *) GIC_DIST_BASE_ADDR)
+#define GIC_CPU_BASE ((void *) GIC_CPU_BASE_ADDR)
 
 #define GICD_CTRL       0x0
 #define GICD_IGROUPR    0x80
