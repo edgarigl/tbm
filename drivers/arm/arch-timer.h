@@ -1,3 +1,5 @@
+#include <stdint.h>
+
 enum {
 	TIMER_PHYS,
 	TIMER_PHYS_SEC,
