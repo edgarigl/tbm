@@ -288,7 +288,12 @@ void aarch64_mmu_setup(struct mmu_ctx *mmu, unsigned int el, bool enable)
 			ibarrier();
 			break;
 		default:
-			assert(0);
+			aarch64_mrs(sctlr, "sctlr_el3");
+			sctlr &= ~SCTLR_M;
+			/* Make sure all outstanding mem transactions are done.  */
+			mb();
+			aarch64_msr("sctlr_el3", sctlr);
+			ibarrier();
 		};
 		aarch64_mmu_tlb_flush(mmu, el);
 		return;
@@ -324,6 +329,14 @@ void aarch64_mmu_setup(struct mmu_ctx *mmu, unsigned int el, bool enable)
 			sctlr |= SCTLR_M;
 			mb();
 			aarch64_msr("sctlr_el1", sctlr);
+			break;
+		case 2:
+			aarch64_msr("ttbr0_el2", ttbr);
+			ibarrier();
+			aarch64_mrs(sctlr, "sctlr_el2");
+			sctlr |= SCTLR_M;
+			mb();
+			aarch64_msr("sctlr_el2", sctlr);
 			break;
 		case 3:
 			aarch64_msr("ttbr0_el3",ttbr);
