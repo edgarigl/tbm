@@ -158,7 +158,10 @@ void gic_eoi(struct irq_ctx *ctx, void *opaque)
     rpr_after = gic_running_prio();
     DPRINTF("After: %u\n", rpr_after);
 
-    assert(rpr_before <= rpr_after);
+//    assert(rpr_before <= rpr_after);
+    if (rpr_before > rpr_after) {
+        printf("ERROR: rpr_before (%d) > rpr_after (%d)\n", rpr_before, rpr_after);
+    }
 }
 
 void gic_deactivate_irq(struct irq_ctx *ctx, void *opaque)
