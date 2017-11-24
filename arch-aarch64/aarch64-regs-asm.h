@@ -1,33 +1,34 @@
-#define HCR_VM        (1ULL << 0)
-#define HCR_SWIO      (1ULL << 1)
-#define HCR_PTW       (1ULL << 2)
-#define HCR_FMO       (1ULL << 3)
-#define HCR_IMO       (1ULL << 4)
-#define HCR_AMO       (1ULL << 5)
-#define HCR_VF        (1ULL << 6)
-#define HCR_VI        (1ULL << 7)
-#define HCR_VSE       (1ULL << 8)
-#define HCR_FB        (1ULL << 9)
-#define HCR_DC        (1ULL << 12)
-#define HCR_TWI       (1ULL << 13)
-#define HCR_TWE       (1ULL << 14)
-#define HCR_TID0      (1ULL << 15)
-#define HCR_TID1      (1ULL << 16)
-#define HCR_TID2      (1ULL << 17)
-#define HCR_TID3      (1ULL << 18)
-#define HCR_TSC       (1ULL << 19)
-#define HCR_TIDCP     (1ULL << 20)
-#define HCR_TACR      (1ULL << 21)
-#define HCR_TSW       (1ULL << 22)
-#define HCR_TPC       (1ULL << 23)
-#define HCR_TPU       (1ULL << 24)
-#define HCR_TTLB      (1ULL << 25)
-#define HCR_TVM       (1ULL << 26)
-#define HCR_TGE       (1ULL << 27)
-#define HCR_TDZ       (1ULL << 28)
-#define HCR_HCD       (1ULL << 29)
-#define HCR_TRVM      (1ULL << 30)
-#define HCR_RW        (1ULL << 31)
+#define HCR_VM        0x1
+#define HCR_SWIO      0x2
+#define HCR_PTW       0x4
+#define HCR_FMO       0x8
+#define HCR_IMO       0x10
+#define HCR_AMO       0x20
+#define HCR_VF        0x40
+#define HCR_VI        0x80
+#define HCR_VSE       0x100
+#define HCR_FB        0x200
+#define HCR_DC        0x1000
+#define HCR_TWI       0x2000
+#define HCR_TWE       0x4000
+#define HCR_TID0      0x8000
+#define HCR_TID1      0x10000
+#define HCR_TID2      0x20000
+#define HCR_TID3      0x40000
+#define HCR_TSC       0x80000
+#define HCR_TIDCP     0x100000
+#define HCR_TACR      0x200000
+#define HCR_TSW       0x400000
+#define HCR_TPC       0x800000
+#define HCR_TPU       0x1000000
+#define HCR_TTLB      0x2000000
+#define HCR_TVM       0x4000000
+#define HCR_TGE       0x8000000
+#define HCR_TDZ       0x10000000
+#define HCR_HCD       0x20000000
+#define HCR_TRVM      0x40000000
+#define HCR_RW        0x80000000
+/* Only avalable in C.  */
 #define HCR_CD        (1ULL << 32)
 #define HCR_ID        (1ULL << 33)
 
