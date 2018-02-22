@@ -94,9 +94,9 @@ static inline void gicd_disable_irq(char *base, unsigned int irq)
 	unsigned int bitoffset = irq % 32;
 	uint32_t r;
 
-	r = readl(base + GICD_ISENABLER + offset);
-	r &= ~(1 << bitoffset);
-	writel(base + GICD_ISENABLER + offset, r);
+	r = readl(base + GICD_ICENABLER + offset);
+	r |= 1 << bitoffset;
+	writel(base + GICD_ICENABLER + offset, r);
 }
 
 #endif
