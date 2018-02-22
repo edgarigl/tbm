@@ -26,6 +26,7 @@ static const struct handler_action PREEMPT_TEST_ACTIONS[] = {
     { nested_irq_disable }, /* disable nested IRQs */
 
     { gic_eoi },            /* GIC end of interrupt */
+    { gic_deactivate_irq }, /* GIC deactivate IRQ (only if eoi_mode is true) */
     { timer_rearm },        /* rearm the timer */
     { token_set_parent },   /* set the parent token to unblock the previous lvl IRQ waiting for us */
     HA_END
@@ -51,6 +52,7 @@ static const struct handler_action NO_PREEMPT_TEST_ACTIONS[] = {
     { nested_irq_disable },         /* disable nested IRQs */
 
     { gic_eoi },                    /* GIC end of interrupt */
+    { gic_deactivate_irq },         /* GIC deactivate IRQ (only if eoi_mode is true) */
     { timer_rearm },                /* rearm the timer */
     HA_END
 };
@@ -139,6 +141,7 @@ static const struct handler_action SUB_PRIO_1ST_TIMER_TEST_ACTIONS[] = {
     { nested_irq_disable },
 
     { gic_eoi },
+    { gic_deactivate_irq },
     { timer_rearm },
     HA_END
 };
@@ -156,8 +159,8 @@ static const struct handler_action SUB_PRIO_2ND_TIMER_TEST_ACTIONS[] = {
     { nested_irq_disable },
 
     { gic_eoi },
-    { timer_rearm },
     { gic_deactivate_irq },
+    { timer_rearm },
     { token_set_parent },
     HA_END
 };
@@ -175,8 +178,8 @@ static const struct handler_action SUB_PRIO_3RD_TIMER_TEST_ACTIONS[] = {
     { nested_irq_disable },
 
     { gic_eoi },
-    { timer_rearm },
     { gic_deactivate_irq },
+    { timer_rearm },
     { token_set_parent },
     HA_END
 };

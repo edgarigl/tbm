@@ -166,6 +166,12 @@ void gic_eoi(struct irq_ctx *ctx, void *opaque)
 
 void gic_deactivate_irq(struct irq_ctx *ctx, void *opaque)
 {
+    if (!cur_test->gic.eoi_mode) {
+        return;
+    }
+
+    DPRINTF("deactivating irq %u\n", ctx->irq);
+
     writel(GIC_CPU_BASE + GICC_DIR, ctx->irq);
 }
 
