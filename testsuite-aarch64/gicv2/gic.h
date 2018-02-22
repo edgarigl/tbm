@@ -24,11 +24,16 @@ struct gic_info {
     bool en_grp1;
     bool grp0_to_fiq;
     bool eoi_mode;
+    bool cbpr;
+
+    uint8_t bpr, abpr;
 };
 
 static inline void gic_end_of_irq(uint32_t irq)
 {
     writel(GIC_CPU_BASE + GICC_EOIR, irq);
+    mb();
+    ibarrier();
 }
 
 static inline uint32_t gic_ack_irq(void)
@@ -42,5 +47,6 @@ static inline uint32_t gic_running_prio(void)
 }
 
 void gic_configure(const struct gic_info *info);
+void gic_teardown(const struct gic_info *info);
 
 #endif

@@ -257,6 +257,13 @@ static void configure_gic(const struct gic_info *info)
     ibarrier();
 }
 
+static void teardown_git(const struct gic_info *info)
+{
+    gic_teardown(info);
+    ibarrier();
+}
+
+
 static void configure_timers(const struct timer_info *info)
 {
     uint32_t cntfrq;
@@ -297,7 +304,6 @@ static void enable_timers(void)
             continue;
         }
 
-        gicd_enable_irq(GIC_DIST_BASE, TIMER_IDX_TO_IRQ[i]);
         counter[i] = a64_read_timer_cnt(i);
         _timer_rearm(i);
         a64_write_timer_ctl(i, T_ENABLE);
@@ -324,7 +330,6 @@ static void disable_timers(void)
         }
 
         a64_write_timer_ctl(i, 0);
-        gicd_disable_irq(GIC_DIST_BASE, TIMER_IDX_TO_IRQ[i]);
     }
 }
 
@@ -389,6 +394,7 @@ void gic_test(const char * test_name, const struct test_info *info)
 
     local_cpu_fiq_di();
     disable_timers();
+    teardown_git(&info->gic);
 
     printf("GIC test %s passed\n", test_name);
 }

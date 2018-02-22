@@ -207,6 +207,10 @@ static void test_gic_preempt_subgroup_in_grp0(void)
             .en_grp1 = false,       /* Disable distribution of Group1 interrupts */
             .grp0_to_fiq = true,    /* Redirect Group0 IRQs to FIQ line */
             .eoi_mode = false,      /* EOImode and EOImodeNS disabled */
+            .cbpr = false,          /* CBPR bit in C_CTLR (use ABPR for group1 IRQs when false,
+                                       BPR otherwise) */
+            .bpr = 4,               /* Binary Point Register */
+            .abpr = 5,              /* Aliased BPR (for group1 IRQs if CPBR is false) */
         },
 
         /* General interrupt handler actions to use for all timers */
@@ -267,6 +271,9 @@ static void test_gic_preempt_subgroup_in_grp1(void)
             .en_grp1 = true,
             .grp0_to_fiq = false,
             .eoi_mode = false,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -322,6 +329,9 @@ static void test_gic_preempt_group_subgroup(void)
             .en_grp1 = true,
             .grp0_to_fiq = true,
             .eoi_mode = false,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -384,6 +394,9 @@ static void test_gic_subprio(void)
             .en_grp1 = false,
             .grp0_to_fiq = true,
             .eoi_mode = false,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .timers = {
@@ -442,6 +455,9 @@ static void test_gic_subprio_in_grp0_no_preempt(void)
             .en_grp1 = false,
             .grp0_to_fiq = true,
             .eoi_mode = false,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -497,6 +513,9 @@ static void test_gic_subprio_in_grp1_no_preempt(void)
             .en_grp1 = true,
             .grp0_to_fiq = false,
             .eoi_mode = false,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -554,6 +573,9 @@ static void test_gic_prio_drop_grp0(void)
             .en_grp1 = false,
             .grp0_to_fiq = true,
             .eoi_mode = true,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .timers = {
@@ -610,6 +632,9 @@ static void test_gic_prio_drop_grp1(void)
             .en_grp1 = true,
             .grp0_to_fiq = false,
             .eoi_mode = true,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .timers = {
@@ -663,6 +688,9 @@ static void test_gic_prio_drop_grp0_subprio_lo_hi(void)
             .en_grp1 = false,
             .grp0_to_fiq = true,
             .eoi_mode = true,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .timers = {
@@ -716,6 +744,9 @@ static void test_gic_prio_drop_grp0_subprio_hi_lo(void)
             .en_grp1 = false,
             .grp0_to_fiq = true,
             .eoi_mode = true,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .timers = {
@@ -769,6 +800,9 @@ static void test_gic_prio_drop_grp1_subprio_lo_hi(void)
             .en_grp1 = true,
             .grp0_to_fiq = false,
             .eoi_mode = true,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .timers = {
@@ -822,6 +856,9 @@ static void test_gic_prio_drop_grp1_subprio_hi_lo(void)
             .en_grp1 = true,
             .grp0_to_fiq = false,
             .eoi_mode = true,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .timers = {
@@ -882,6 +919,9 @@ static void test_gic_preempt_drop_mix(void)
             .en_grp1 = false,
             .grp0_to_fiq = true,
             .eoi_mode = true,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 5,
         },
 
         .timers = {
