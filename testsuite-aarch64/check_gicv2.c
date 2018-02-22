@@ -87,9 +87,9 @@ static const struct handler_action PRIO_DROP_HI_PRIO_TEST_ACTIONS[] = {
     { nested_irq_enable },
 
     { wait_us, HA_PARAM(1000) },        /* Let the time to low prio timer to trigger */
-    { token_assert, HA_PARAM(false) },  /* ensure we have not been preempted yet */
+    { token_assert_self, HA_PARAM(false) },  /* ensure we have not been preempted yet */
     { gic_eoi },                        /* priority drop */
-    { token_assert, HA_PARAM(true) },   /* ensure we have been preempted on prio drop */
+    { token_assert_self, HA_PARAM(true) },   /* ensure we have been preempted on prio drop */
 
     { nested_irq_disable },
 
@@ -236,14 +236,16 @@ static void test_gic_preempt_subgroup_in_grp0(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = true,        /* Enable distribution of Group0 interrupts */
-            .en_grp1 = false,       /* Disable distribution of Group1 interrupts */
-            .grp0_to_fiq = true,    /* Redirect Group0 IRQs to FIQ line */
-            .eoi_mode = false,      /* EOImode and EOImodeNS disabled */
-            .cbpr = false,          /* CBPR bit in C_CTLR (use ABPR for group1 IRQs when false,
-                                       BPR otherwise) */
-            .bpr = 4,               /* Binary Point Register */
-            .abpr = 5,              /* Aliased BPR (for group1 IRQs if CPBR is false) */
+            .cpu = {
+                .en_grp0 = true,        /* Enable distribution of Group0 interrupts */
+                .en_grp1 = false,       /* Disable distribution of Group1 interrupts */
+                .grp0_to_fiq = true,    /* Redirect Group0 IRQs to FIQ line */
+                .eoi_mode = false,      /* EOImode and EOImodeNS disabled */
+                .cbpr = false,          /* CBPR bit in C_CTLR (use ABPR for group1 IRQs when false,
+                                           BPR otherwise) */
+                .bpr = 4,               /* Binary Point Register */
+                .abpr = 5,              /* Aliased BPR (for group1 IRQs if CPBR is false) */
+            },
         },
 
         /* General interrupt handler actions to use for all timers */
@@ -300,13 +302,15 @@ static void test_gic_preempt_subgroup_in_grp1(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = false,
-            .en_grp1 = true,
-            .grp0_to_fiq = false,
-            .eoi_mode = false,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = false,
+                .en_grp1 = true,
+                .grp0_to_fiq = false,
+                .eoi_mode = false,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -357,12 +361,14 @@ static void test_gic_preempt_subgroup_in_grp1_cbpr(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = false,
-            .en_grp1 = true,
-            .grp0_to_fiq = false,
-            .eoi_mode = false,
-            .cbpr = true,
-            .bpr = 2,
+            .cpu = {
+                .en_grp0 = false,
+                .en_grp1 = true,
+                .grp0_to_fiq = false,
+                .eoi_mode = false,
+                .cbpr = true,
+                .bpr = 2,
+            },
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -413,13 +419,15 @@ static void test_gic_preempt_subgroup_in_grp1_abpr_4(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = false,
-            .en_grp1 = true,
-            .grp0_to_fiq = false,
-            .eoi_mode = false,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 4,
+            .cpu = {
+                .en_grp0 = false,
+                .en_grp1 = true,
+                .grp0_to_fiq = false,
+                .eoi_mode = false,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 4,
+            },
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -471,13 +479,15 @@ static void test_gic_preempt_group_subgroup(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = true,
-            .en_grp1 = true,
-            .grp0_to_fiq = true,
-            .eoi_mode = false,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = true,
+                .en_grp1 = true,
+                .grp0_to_fiq = true,
+                .eoi_mode = false,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -536,13 +546,15 @@ static void test_gic_subprio(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = true,
-            .en_grp1 = false,
-            .grp0_to_fiq = true,
-            .eoi_mode = false,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = true,
+                .en_grp1 = false,
+                .grp0_to_fiq = true,
+                .eoi_mode = false,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .timers = {
@@ -597,13 +609,15 @@ static void test_gic_subprio_in_grp0_no_preempt(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = true,
-            .en_grp1 = false,
-            .grp0_to_fiq = true,
-            .eoi_mode = false,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = true,
+                .en_grp1 = false,
+                .grp0_to_fiq = true,
+                .eoi_mode = false,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -655,13 +669,15 @@ static void test_gic_subprio_in_grp1_no_preempt(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = false,
-            .en_grp1 = true,
-            .grp0_to_fiq = false,
-            .eoi_mode = false,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = false,
+                .en_grp1 = true,
+                .grp0_to_fiq = false,
+                .eoi_mode = false,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .actions = PREEMPT_TEST_ACTIONS,
@@ -715,13 +731,15 @@ static void test_gic_prio_drop_grp0(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = true,
-            .en_grp1 = false,
-            .grp0_to_fiq = true,
-            .eoi_mode = true,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = true,
+                .en_grp1 = false,
+                .grp0_to_fiq = true,
+                .eoi_mode = true,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .timers = {
@@ -774,13 +792,15 @@ static void test_gic_prio_drop_grp1(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = false,
-            .en_grp1 = true,
-            .grp0_to_fiq = false,
-            .eoi_mode = true,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = false,
+                .en_grp1 = true,
+                .grp0_to_fiq = false,
+                .eoi_mode = true,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .timers = {
@@ -830,13 +850,15 @@ static void test_gic_prio_drop_grp0_subprio_lo_hi(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = true,
-            .en_grp1 = false,
-            .grp0_to_fiq = true,
-            .eoi_mode = true,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = true,
+                .en_grp1 = false,
+                .grp0_to_fiq = true,
+                .eoi_mode = true,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .timers = {
@@ -886,13 +908,15 @@ static void test_gic_prio_drop_grp0_subprio_hi_lo(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = true,
-            .en_grp1 = false,
-            .grp0_to_fiq = true,
-            .eoi_mode = true,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = true,
+                .en_grp1 = false,
+                .grp0_to_fiq = true,
+                .eoi_mode = true,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .timers = {
@@ -942,13 +966,15 @@ static void test_gic_prio_drop_grp1_subprio_lo_hi(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = false,
-            .en_grp1 = true,
-            .grp0_to_fiq = false,
-            .eoi_mode = true,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = false,
+                .en_grp1 = true,
+                .grp0_to_fiq = false,
+                .eoi_mode = true,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .timers = {
@@ -998,13 +1024,15 @@ static void test_gic_prio_drop_grp1_subprio_hi_lo(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = false,
-            .en_grp1 = true,
-            .grp0_to_fiq = false,
-            .eoi_mode = true,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = false,
+                .en_grp1 = true,
+                .grp0_to_fiq = false,
+                .eoi_mode = true,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .timers = {
@@ -1061,13 +1089,15 @@ static void test_gic_preempt_drop_mix(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = true,
-            .en_grp1 = false,
-            .grp0_to_fiq = true,
-            .eoi_mode = true,
-            .cbpr = false,
-            .bpr = 4,
-            .abpr = 5,
+            .cpu = {
+                .en_grp0 = true,
+                .en_grp1 = false,
+                .grp0_to_fiq = true,
+                .eoi_mode = true,
+                .cbpr = false,
+                .bpr = 4,
+                .abpr = 5,
+            },
         },
 
         .timers = {
@@ -1126,12 +1156,14 @@ static void test_gic_active_pending_no_sig(void)
     static const struct test_info INFO = {
         .gic = {
             .irqs = GIC_IRQ_INFO,
-            .en_grp0 = true,
-            .en_grp1 = false,
-            .grp0_to_fiq = true,
-            .eoi_mode = true,
-            .cbpr = false,
-            .bpr = 4,
+            .cpu = {
+                .en_grp0 = true,
+                .en_grp1 = false,
+                .grp0_to_fiq = true,
+                .eoi_mode = true,
+                .cbpr = false,
+                .bpr = 4,
+            },
         },
 
         .actions = ACTIVE_PENDING_TEST_ACTIONS,

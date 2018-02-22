@@ -6,6 +6,7 @@
 #include "trace.h"
 #include "switch.h"
 #include "gic.h"
+#include "misc.h"
 
 struct irq_ctx {
     const struct timer_info *timer_info;
@@ -15,14 +16,15 @@ struct irq_ctx {
     enum e_irq_type type;
     uint32_t irq;
     int timer_id;
+    bool is_vcpu;
+    void *gicc_base;
 };
 
 static uint64_t counter[4] = { 0 };
 static uint32_t freq[4];
-static uint64_t freq_k;
 
 static bool token[4] = { false };
-static int irq_lvl = -1;
+static volatile int irq_lvl = -1;
 static int max_lvl = -1;
 
 static const struct test_info *cur_test = NULL;
@@ -43,7 +45,7 @@ static inline int timer_get_lvl(int id)
 {
     assert(cur_test);
     assert(id < 4);
-    assert(cur_test->timers[id].enabled);
+    assert(cur_test->virt_mode || cur_test->timers[id].enabled);
 
     return cur_test->timers[id].lvl;
 }
@@ -72,6 +74,11 @@ static inline void _timer_rearm(int timer)
 
     DPRINTF("[%s] rearm: before:%llu, after:%llu\n",
             TIMER_LABEL[timer], cur, counter[timer]);
+}
+
+static inline bool is_maintenance_irq(uint32_t irq)
+{
+    return irq == MAINTENANCE_IRQ;
 }
 
 static inline int get_timer_id(uint32_t irq)
@@ -138,44 +145,60 @@ void timer_assert_lvl(struct irq_ctx *ctx, void *opaque)
 
 void nested_irq_enable(struct irq_ctx *ctx, void *opaque)
 {
-    enable_nested_irq(ctx->type, ctx->el, &ctx->nested_irq_ctx);
+    enable_nested_irq(ctx->el, &ctx->nested_irq_ctx);
 }
 
 void nested_irq_disable(struct irq_ctx *ctx, void *opaque)
 {
-    disable_nested_irq(ctx->type, ctx->el, &ctx->nested_irq_ctx);
+    disable_nested_irq(ctx->el, &ctx->nested_irq_ctx);
 }
 
 void gic_eoi(struct irq_ctx *ctx, void *opaque)
 {
-    int rpr_before = gic_running_prio(), rpr_after;
-    DPRINTF("About to end irq %u. Running prio before: %u\n", ctx->irq, rpr_before);
+    int rpr_before = gic_running_prio(ctx->gicc_base), rpr_after;
+    DPRINTF("about to end irq %u. Running prio before: %u\n", ctx->irq, rpr_before);
 
-    gic_end_of_irq(ctx->irq);
+    gic_end_of_irq(ctx->gicc_base, ctx->irq);
 
-    rpr_after = gic_running_prio();
-    DPRINTF("After: %u\n", rpr_after);
+    rpr_after = gic_running_prio(ctx->gicc_base);
+    DPRINTF("after: %u\n", rpr_after);
 
-//    assert(rpr_before <= rpr_after);
-    if (rpr_before > rpr_after) {
-        printf("ERROR: rpr_before (%d) > rpr_after (%d)\n", rpr_before, rpr_after);
-    }
+    assert(rpr_before <= rpr_after);
+}
+
+void gic_eoi_inexistant_irq(struct irq_ctx *ctx, void *opaque)
+{
+    const uint32_t WRONG = 42;
+
+    DPRINTF("ending a wrong irq %u.\n", WRONG);
+    gic_end_of_irq(ctx->gicc_base, WRONG);
 }
 
 void gic_deactivate_irq(struct irq_ctx *ctx, void *opaque)
 {
-    if (!cur_test->gic.eoi_mode) {
+    const struct gic_cpu_info *info;
+
+    info = ctx->is_vcpu ? &cur_test->gic.vcpu : &cur_test->gic.cpu;
+
+    if (!info->eoi_mode) {
         return;
     }
 
     DPRINTF("deactivating irq %u\n", ctx->irq);
 
-    writel(GIC_CPU_BASE + GICC_DIR, ctx->irq);
+    writel(ctx->gicc_base + GICC_DIR, ctx->irq);
+    mb();
+    ibarrier();
 }
 
 void token_reset_self(struct irq_ctx *ctx, void *opaque)
 {
     token[timer_get_lvl(ctx->timer_id)] = false;
+}
+
+void token_set_self(struct irq_ctx *ctx, void *opaque)
+{
+    token[timer_get_lvl(ctx->timer_id)] = true;
 }
 
 void token_wait_self(struct irq_ctx *ctx, void *opaque)
@@ -185,7 +208,7 @@ void token_wait_self(struct irq_ctx *ctx, void *opaque)
     }
 }
 
-void token_assert(struct irq_ctx *ctx, void *opaque)
+void token_assert_self(struct irq_ctx *ctx, void *opaque)
 {
     bool val = (bool) opaque;
     assert(token[timer_get_lvl(ctx->timer_id)] == val);
@@ -207,26 +230,167 @@ void token_assert_parent(struct irq_ctx *ctx, void *opaque)
     }
 }
 
-static inline void generic_handler(enum e_irq_type type, int expected_el)
+void token_set_lvl(struct irq_ctx *ctx, void *opaque)
+{
+    size_t lvl = (bool) opaque;
+
+    assert(lvl < 4);
+    token[lvl] = true;
+}
+
+void token_reset_lvl(struct irq_ctx *ctx, void *opaque)
+{
+    size_t lvl = (bool) opaque;
+
+    assert(lvl < 4);
+    token[lvl] = false;
+}
+
+void token_assert_true_lvl(struct irq_ctx *ctx, void *opaque)
+{
+    size_t lvl = (bool) opaque;
+
+    assert(lvl < 4);
+    assert(token[lvl]);
+}
+
+void token_assert_false_lvl(struct irq_ctx *ctx, void *opaque)
+{
+    size_t lvl = (bool) opaque;
+
+    assert(lvl < 4);
+    assert(!token[lvl]);
+}
+
+void virt_inject_irq(struct irq_ctx *ctx, void *opaque)
+{
+    const struct virt_inject_irq_params *p;
+    p = (struct virt_inject_irq_params *) opaque;
+
+    int next_lr = gich_get_next_lr_entry();
+
+    DPRINTF("injecting irq %d at lr entry number %d\n",
+            p->virt_id, next_lr);
+
+    gich_set_lr_entry(next_lr, p->hw, p->grp1,
+                      0x1, /* pending */
+                      p->prio, p->phys_id, p->virt_id);
+}
+
+void virt_assert_maint_irq(struct irq_ctx *ctx, void *opaque)
+{
+    uint32_t misr_exp = (uintptr_t) opaque;
+    uint32_t misr_act = gich_read_misr();
+
+    DPRINTF("H_MISR is %x\n", misr_act);
+    assert(misr_exp == misr_act);
+}
+
+void virt_enable_maint_irq(struct irq_ctx *ctx, void *opaque)
+{
+    uint32_t enable_mask = (uintptr_t) opaque;
+    uint32_t h_hcr = gich_read_hcr();
+
+    h_hcr |= enable_mask;
+    gich_write_hcr(h_hcr);
+}
+
+void virt_disable_maint_irq(struct irq_ctx *ctx, void *opaque)
+{
+    uint32_t disable_mask = (uintptr_t) opaque;
+    uint32_t h_hcr = gich_read_hcr();
+
+    h_hcr &= ~disable_mask;
+    gich_write_hcr(h_hcr);
+}
+
+void virt_assert_eoicount(struct irq_ctx *ctx, void *opaque)
+{
+    uintptr_t expected = (uintptr_t) opaque;
+    uint32_t count = gich_read_hcr() >> 27;
+
+    DPRINTF("hcr eoicount is %u\n", count);
+    assert(expected == count);
+}
+
+void virt_reset_eoicount(struct irq_ctx *ctx, void *opaque)
+{
+    uint32_t hcr = gich_read_hcr();
+
+    hcr &= 0x07ffffff;
+    gich_write_hcr(hcr);
+}
+
+void virt_assert_eisr_entry(struct irq_ctx *ctx, void *opaque)
+{
+    uint32_t assert_mask = (uintptr_t) opaque;
+    uint32_t eisr = gich_read_eisr0();
+
+    assert(assert_mask == eisr);
+    assert(gich_read_eisr1() == 0);
+}
+
+void virt_clear_eoi_in_lr(struct irq_ctx *ctx, void *opaque)
+{
+    uint32_t lr = (uintptr_t) opaque;
+
+    gich_set_lr_entry(lr, 0, 0, 0, 0, 0, 0);
+}
+
+
+static inline bool is_vcpu(int cur_el)
+{
+    if (!cur_test->virt_mode) {
+        return false;
+    }
+
+    return cur_el == 1;
+}
+
+static inline void * get_gicc_base(bool is_vcpu)
+{
+    return is_vcpu ? GIC_VCPU_BASE : GIC_CPU_BASE;
+}
+
+static inline void generic_handler(enum e_irq_type type)
 {
     struct irq_ctx ctx;
     const struct handler_action *actions;
 
     irq_lvl++;
 
-    assert(aarch64_current_el() == expected_el);
-
-    ctx.el = expected_el;
+    ctx.el = aarch64_current_el();
     ctx.type = type;
-    ctx.irq = gic_ack_irq();
-    ctx.timer_id = get_timer_id(ctx.irq);
-    ctx.timer_info = &cur_test->timers[ctx.timer_id];
+    ctx.is_vcpu = is_vcpu(ctx.el);
+    ctx.gicc_base = get_gicc_base(ctx.is_vcpu);
+    ctx.irq = gic_ack_irq(ctx.gicc_base);
 
-    DPRINTF("enter [%s] lvl:%d\n", TIMER_LABEL[ctx.timer_id], irq_lvl);
+    if (!is_maintenance_irq(ctx.irq)) {
+        ctx.timer_id = get_timer_id(ctx.irq);
+        ctx.timer_info = &cur_test->timers[ctx.timer_id];
+    } else {
+        ctx.timer_id = -1;
+        ctx.timer_info = NULL;
+    }
 
-    if (ctx.timer_info->actions) {
+    DPRINTF("enter [%s]%s el:%d, lvl:%d\n",
+            ctx.timer_info ? TIMER_LABEL[ctx.timer_id] : "maint",
+            ctx.is_vcpu ? " [vcpu]" : "", ctx.el, irq_lvl);
+
+    if (!ctx.timer_info) {
+        /* Maintenance IRQ actions */
+        assert(cur_test->virt_mode);
+        assert(!ctx.is_vcpu);
+        assert(cur_test->maintenance_irq_actions != NULL);
+        actions = cur_test->maintenance_irq_actions;
+    } else if (ctx.is_vcpu && ctx.timer_info->vcpu_actions) {
+        /* timer actions for VCPU  */
+        actions = ctx.timer_info->vcpu_actions;
+    } else if (ctx.timer_info->actions) {
+        /* timer actions */
         actions = ctx.timer_info->actions;
     } else {
+        /* main actions */
         actions = cur_test->actions;
     }
 
@@ -235,18 +399,21 @@ static inline void generic_handler(enum e_irq_type type, int expected_el)
         actions++;
     }
 
-    DPRINTF("leave [%s] lvl:%d\n", TIMER_LABEL[ctx.timer_id], irq_lvl);
+    DPRINTF("leave [%s]%s lvl:%d\n\n",
+            ctx.timer_info ? TIMER_LABEL[ctx.timer_id] : "maint",
+            ctx.is_vcpu ? " [vcpu]" : "", irq_lvl);
+
     irq_lvl--;
 }
 
 void timer_fiq_h(struct excp_frame *f)
 {
-    generic_handler(FIQ, 3);
+    generic_handler(FIQ);
 }
 
 void timer_irq_h(struct excp_frame *f)
 {
-    generic_handler(IRQ, 1);
+    generic_handler(IRQ);
 }
 
 static void configure_gic(const struct gic_info *info)
@@ -273,14 +440,17 @@ static void configure_timers(const struct timer_info *info)
     aarch64_mrs(cntfrq, "cntfrq_el0");
     DPRINTF("cntfrq=%d Hz\n", cntfrq);
 
-    /* We'd like to show our delays in ns.  */
-    freq_k = (1000 * 1000 * 1000ULL) / cntfrq;
-    DPRINTF("freq_k=%llx\n", freq_k);
-
     for (i = 0; i < 4; i++) {
         freq[i] = cntfrq / info[i].tick_divisor;
         max_lvl = info[i].lvl > max_lvl ? info[i].lvl : max_lvl;
+        token[i] = false;
     }
+}
+
+static inline bool config_timer_in_el(const struct timer_info *t,
+                                      int cur_el, bool virt_mode)
+{
+    return t->el == cur_el || (cur_el == 3 && t->el == 2 && virt_mode);
 }
 
 static void enable_timers(void)
@@ -298,7 +468,7 @@ static void enable_timers(void)
             continue;
         }
 
-        if (t->el != cur_el) {
+        if (!config_timer_in_el(t, cur_el, cur_test->virt_mode)) {
             continue;
         }
 
@@ -323,7 +493,7 @@ static void disable_timers(void)
             continue;
         }
 
-        if (t->el != cur_el) {
+        if (!config_timer_in_el(t, cur_el, cur_test->virt_mode)) {
             continue;
         }
 
@@ -343,7 +513,7 @@ static void el1_entry(void *arg)
 
     for (i = 0; i < 8; i++) {
         cpu_wfi();
-        DPRINTF("loop\n");
+        DPRINTF("loop\n\n");
 #ifndef DEBUG
         printf(".");
 #endif
@@ -378,7 +548,12 @@ void gic_test(const char * test_name, const struct test_info *info)
     enable_timers();
     local_cpu_fiq_ei();
 
-    switch_to_el1(el1_entry, NULL);
+    if (info->virt_mode) {
+        switch_to_virt_mode_el1(el1_entry, NULL);
+    } else {
+        switch_to_el1(el1_entry, NULL);
+    }
+
     assert(aarch64_current_el() == 3);
 
     local_cpu_fiq_di();

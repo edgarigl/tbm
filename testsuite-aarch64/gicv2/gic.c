@@ -1,10 +1,6 @@
 #include "gic.h"
 #include "trace.h"
-
-static inline int ctz32(uint32_t val)
-{
-    return val ? __builtin_ctz(val) : 32;
-}
+#include "misc.h"
 
 /* Returns the number of implemented priority bits in the GIC */
 static int get_prio_bits_num(void)
@@ -32,10 +28,10 @@ static void gic_irq_set_prio(const struct gic_info *info,
 
     assert(irq->group < 2);
 
-    if ((!irq->group) || info->cbpr) {
-        bpr = info->bpr + 1;
+    if ((!irq->group) || info->cpu.cbpr) {
+        bpr = info->cpu.bpr + 1;
     } else {
-        bpr = info->abpr;
+        bpr = info->cpu.abpr;
     }
 
     assert(irq->subgroup < (1 << (8-bpr)));
@@ -68,14 +64,27 @@ static void gic_disable_irq(const struct gic_irq_info *irq)
     mb();
 }
 
-void gic_configure(const struct gic_info *info)
+static void configure_dist(const struct gic_info *info)
 {
-    const struct gic_irq_info *irqs = info->irqs;
-    uint32_t c_ctrl = 0;
     int prio_bits_num;
+    const struct gic_irq_info *irqs = info->irqs;
 
     prio_bits_num = get_prio_bits_num();
     DPRINTF("implemented prio bits: %d\n", prio_bits_num);
+
+    writel(GIC_DIST_BASE + GICD_CTRL, 3);
+
+    while (irqs->irq != -1) {
+        gic_configure_irq(info, irqs, prio_bits_num);
+        irqs++;
+    }
+
+    mb();
+}
+
+static void configure_cpu_iface(const struct gic_cpu_info *info, void *base)
+{
+    uint32_t c_ctrl = 0;
 
     c_ctrl |= info->en_grp0 << 0;
     c_ctrl |= info->en_grp1 << 1;
@@ -84,22 +93,44 @@ void gic_configure(const struct gic_info *info)
     c_ctrl |= info->eoi_mode << 9;  /* EOImodeS */
     c_ctrl |= info->eoi_mode << 10; /* EOImodeNS */
 
-    writel(GIC_DIST_BASE + GICD_CTRL, 3);
-    writel(GIC_CPU_BASE + GICC_CTRL, c_ctrl);
-    writel(GIC_CPU_BASE + GICC_PMR, 0xff);
+    writel(base + GICC_CTRL, c_ctrl);
+    writel(base + GICC_PMR, 0xff);
 
-    writel(GIC_CPU_BASE + GICC_BPR, info->bpr);
+    writel(base + GICC_BPR, info->bpr);
 
     if (info->en_grp1 && !info->cbpr) {
         assert(info->abpr > 0);
-        writel(GIC_CPU_BASE + GICC_ABPR, info->abpr);
+        writel(base + GICC_ABPR, info->abpr);
     }
 
     mb();
+}
 
-    while (irqs->irq != -1) {
-        gic_configure_irq(info, irqs, prio_bits_num);
-        irqs++;
+static bool configure_virt(const struct gic_virt_info *info)
+{
+    uint32_t h_hcr = 0;
+
+    h_hcr |= info->en << 0;
+    h_hcr |= info->uie << 1;
+    h_hcr |= info->lrenpie << 2;
+    h_hcr |= info->npie << 3;
+    h_hcr |= info->vgrp0eie << 4;
+    h_hcr |= info->vgrp0die << 5;
+    h_hcr |= info->vgrp1eie << 6;
+    h_hcr |= info->vgrp1die << 7;
+
+    writel(GIC_VIFACE_BASE + GICH_HCR, h_hcr);
+
+    return info->en;
+}
+
+void gic_configure(const struct gic_info *info)
+{
+    configure_dist(info);
+    configure_cpu_iface(&info->cpu, GIC_CPU_BASE);
+
+    if (configure_virt(&info->virt)) {
+        configure_cpu_iface(&info->vcpu, GIC_VCPU_BASE);
     }
 }
 

@@ -1,9 +1,25 @@
 #include <aarch64-regs-asm.h>
 #include <aarch64-smc-asm.h>
 
-.global switch_to_el1
+.global switch_to_el1, switch_to_virt_mode_el1
 
 switch_to_el1:
+    mrs x3, hcr_el2
+    ldr x2, =(HCR_RW)
+    orr x3, x3, x2
+    msr hcr_el2, x3
+
+    b _switch_to_el1
+
+
+switch_to_virt_mode_el1:
+    mrs x3, hcr_el2
+    ldr x2, =(HCR_RW | HCR_IMO | HCR_FMO)
+    orr x3, x3, x2
+    msr hcr_el2, x3
+
+
+_switch_to_el1:
     stp x29, x30, [sp, #-16]!
 
     msr elr_el3, x0
@@ -12,11 +28,6 @@ switch_to_el1:
     mov x2, #(SCR_NS | SCR_FIQ | SCR_RW)
     orr x0, x0, x2
     msr scr_el3, x0
-
-    mrs x0, hcr_el2
-    mov x2, #(HCR_RW)
-    orr x0, x0, x2
-    msr hcr_el2, x0
 
     mov x0, #(1 << 2 | 1)
     msr spsr_el3, x0
