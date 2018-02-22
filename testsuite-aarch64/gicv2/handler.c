@@ -25,8 +25,6 @@ static bool token[4] = { false };
 static int irq_lvl = -1;
 static int max_lvl = -1;
 
-static uint8_t el1_stack[0x8000];
-
 static const struct test_info *cur_test = NULL;
 
 void udelay(unsigned int us)
@@ -333,7 +331,7 @@ static void disable_timers(void)
     }
 }
 
-static void el1_entry(void)
+static void el1_entry(void *arg)
 {
     int i;
 
@@ -361,14 +359,6 @@ static void el1_entry(void)
     DPRINTF("leave\n");
 }
 
-static inline void set_el1_stack(void)
-{
-    uint8_t * stack_bottom = el1_stack + sizeof(el1_stack);
-
-    asm volatile ("msr sp_el1, %0"
-                  : : "r" (stack_bottom));
-}
-
 void gic_test(const char * test_name, const struct test_info *info)
 {
     assert(aarch64_current_el() == 3);
@@ -384,12 +374,11 @@ void gic_test(const char * test_name, const struct test_info *info)
 
     configure_gic(&info->gic);
     configure_timers(info->timers);
-    set_el1_stack();
 
     enable_timers();
     local_cpu_fiq_ei();
 
-    switch_to_el1(el1_entry);
+    switch_to_el1(el1_entry, NULL);
     assert(aarch64_current_el() == 3);
 
     local_cpu_fiq_di();
