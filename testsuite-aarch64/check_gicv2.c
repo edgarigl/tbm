@@ -186,6 +186,38 @@ static const struct handler_action SUB_PRIO_3RD_TIMER_TEST_ACTIONS[] = {
 
 
 /*
+ * Handler actions for the "active pending" IRQ test
+ *
+ * This test ends the IRQ and immediatly rearm the timer. It then waits for the
+ * timer to trigger. The GIC should not signal the IRQ since it is already
+ * active and has not been deactivated yet.
+ */
+static const struct handler_action ACTIVE_PENDING_TEST_ACTIONS[] = {
+    { timer_assert_el },
+    { timer_assert_lvl },
+    { timer_ack },
+
+    { nested_irq_enable },
+
+    { gic_eoi },
+    { timer_rearm },
+
+    /* Wait for the timer to trigger again. The corresponding IRQ will become
+     * "active and pending" (because we haven't deactivated it yet). IRQs in
+     * this state should not be signaled to the CPU. If it is incorrectly
+     * signaled, the timer_assert_lvl test will fail. */
+    { wait_us, HA_PARAM(1000) },
+
+    { nested_irq_disable },
+
+    { timer_ack },
+    { timer_rearm },
+    { gic_deactivate_irq },
+    HA_END
+};
+
+
+/*
  * Premption test in group 0
  *
  * This tests uses two timers in group 0. A lower group priority one that get
@@ -289,6 +321,119 @@ static void test_gic_preempt_subgroup_in_grp1(void)
             [TIMER_VIRT] = {
                 .enabled = true,
                 .tick_divisor = 1,
+                .el = 1,
+                .lvl = 1,
+            },
+
+            [TIMER_HYP] = {
+                .enabled = false,
+            },
+
+            [TIMER_PHYS_SEC] = {
+                .enabled = false,
+            },
+        },
+    };
+
+    GIC_TEST(&INFO);
+}
+
+/*
+ * Premption test in group 1
+ *
+ * This tests uses two timers in group 1. A lower group priority one that get
+ * preempted by the second one. CBPR field in CPU_CTRL is set so group1 IRQs
+ * should use BPR instead of ABPR
+ */
+static void test_gic_preempt_subgroup_in_grp1_cbpr(void)
+{
+    static const struct gic_irq_info GIC_IRQ_INFO[] = {
+        { PHYS_TIMER_IRQ, 0, 1, 1, 0 },
+        { VIRT_TIMER_IRQ, 0, 1, 0, 0 },
+        GIC_IRQ_INFO_END
+    };
+
+    static const struct test_info INFO = {
+        .gic = {
+            .irqs = GIC_IRQ_INFO,
+            .en_grp0 = false,
+            .en_grp1 = true,
+            .grp0_to_fiq = false,
+            .eoi_mode = false,
+            .cbpr = true,
+            .bpr = 2,
+        },
+
+        .actions = PREEMPT_TEST_ACTIONS,
+
+        .timers = {
+            [TIMER_PHYS] = {
+                .enabled = true,
+                .tick_divisor = 4,
+                .el = 1,
+                .lvl = 0,
+            },
+
+            [TIMER_VIRT] = {
+                .enabled = true,
+                .tick_divisor = 2,
+                .el = 1,
+                .lvl = 1,
+            },
+
+            [TIMER_HYP] = {
+                .enabled = false,
+            },
+
+            [TIMER_PHYS_SEC] = {
+                .enabled = false,
+            },
+        },
+    };
+
+    GIC_TEST(&INFO);
+}
+
+/*
+ * Premption test in group 1
+ *
+ * This tests uses two timers in group 1. A lower group priority one that get
+ * preempted by the second one. ABPR register is set to 4, which means that
+ * subgroup field is 4 bits (and not 3 as it is for BPR)
+ */
+static void test_gic_preempt_subgroup_in_grp1_abpr_4(void)
+{
+    static const struct gic_irq_info GIC_IRQ_INFO[] = {
+        { PHYS_TIMER_IRQ, 0, 1, 1, 0 },
+        { VIRT_TIMER_IRQ, 0, 1, 0, 0 },
+        GIC_IRQ_INFO_END
+    };
+
+    static const struct test_info INFO = {
+        .gic = {
+            .irqs = GIC_IRQ_INFO,
+            .en_grp0 = false,
+            .en_grp1 = true,
+            .grp0_to_fiq = false,
+            .eoi_mode = false,
+            .cbpr = false,
+            .bpr = 4,
+            .abpr = 4,
+        },
+
+        .actions = PREEMPT_TEST_ACTIONS,
+
+        .timers = {
+            [TIMER_PHYS] = {
+                .enabled = true,
+                .tick_divisor = 4,
+                .el = 1,
+                .lvl = 0,
+            },
+
+            [TIMER_VIRT] = {
+                .enabled = true,
+                .tick_divisor = 2,
                 .el = 1,
                 .lvl = 1,
             },
@@ -962,9 +1107,65 @@ static void test_gic_preempt_drop_mix(void)
     GIC_TEST(&INFO);
 }
 
+
+/*
+ * Active and pending IRQ test
+ *
+ * No signaling should occur for an IRQ that is in the "active and pending"
+ * state.
+ *
+ */
+static void test_gic_active_pending_no_sig(void)
+{
+    static const struct gic_irq_info GIC_IRQ_INFO[] = {
+        { PHYS_TIMER_IRQ, 0, 0, 0, 0 },
+        GIC_IRQ_INFO_END
+    };
+
+    static const struct test_info INFO = {
+        .gic = {
+            .irqs = GIC_IRQ_INFO,
+            .en_grp0 = true,
+            .en_grp1 = false,
+            .grp0_to_fiq = true,
+            .eoi_mode = true,
+            .cbpr = false,
+            .bpr = 4,
+        },
+
+        .actions = ACTIVE_PENDING_TEST_ACTIONS,
+
+        .timers = {
+            [TIMER_PHYS] = {
+                .enabled = true,
+                .tick_divisor = 16,
+                .el = 3,
+                .lvl = 0,
+            },
+
+            [TIMER_VIRT] = {
+                .enabled = false,
+            },
+
+            [TIMER_HYP] = {
+                .enabled = false,
+            },
+
+            [TIMER_PHYS_SEC] = {
+                .enabled = false,
+            },
+        },
+    };
+
+    GIC_TEST(&INFO);
+}
+
+
 __testcall(test_gic_preempt_group_subgroup);
 __testcall(test_gic_preempt_subgroup_in_grp0);
 __testcall(test_gic_preempt_subgroup_in_grp1);
+__testcall(test_gic_preempt_subgroup_in_grp1_abpr_4);
+__testcall(test_gic_preempt_subgroup_in_grp1_cbpr);
 
 __testcall(test_gic_subprio);
 
@@ -980,3 +1181,5 @@ __testcall(test_gic_prio_drop_grp1_subprio_lo_hi);
 __testcall(test_gic_prio_drop_grp1_subprio_hi_lo);
 
 __testcall(test_gic_preempt_drop_mix);
+
+__testcall(test_gic_active_pending_no_sig);
