@@ -3,6 +3,7 @@
 #include "gicv2/test_entry.h"
 #include "gicv2/handler.h"
 #include "gicv2/irq.h"
+#include "gicv2/test_bpr.h"
 
 /*
  * Handler actions for preemption tests.
@@ -1160,7 +1161,6 @@ static void test_gic_active_pending_no_sig(void)
     GIC_TEST(&INFO);
 }
 
-
 __testcall(test_gic_preempt_group_subgroup);
 __testcall(test_gic_preempt_subgroup_in_grp0);
 __testcall(test_gic_preempt_subgroup_in_grp1);
@@ -1183,3 +1183,5 @@ __testcall(test_gic_prio_drop_grp1_subprio_hi_lo);
 __testcall(test_gic_preempt_drop_mix);
 
 __testcall(test_gic_active_pending_no_sig);
+
+__testcall(test_gic_bpr);
