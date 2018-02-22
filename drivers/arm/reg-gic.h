@@ -4,6 +4,8 @@
 
 #define GIC_DIST_BASE ((void *) GIC_DIST_BASE_ADDR)
 #define GIC_CPU_BASE ((void *) GIC_CPU_BASE_ADDR)
+#define GIC_VIFACE_BASE ((void *) GIC_VIFACE_BASE_ADDR)
+#define GIC_VCPU_BASE ((void *) GIC_VCPU_BASE_ADDR)
 
 #define GICD_CTRL       0x0
 #define GICD_IGROUPR    0x80
@@ -26,5 +28,24 @@
 #define GICC_RPR    0x14
 #define GICC_ABPR   0x1c
 #define GICC_AIAR   0x20
+#define GICC_IIDR   0xfc
 #define GICC_DIR    0x1000
 
+#define GICH_HCR    0x000
+#define GICH_VTR    0x004
+#define GICH_VMCR   0x008
+#define GICH_MISR   0x010
+#define GICH_EISR0  0x020
+#define GICH_EISR1  0x024
+#define GICH_ELSR0  0x030
+#define GICH_ELSR1  0x034
+#define GICH_LR     0x100
+
+#define GICH_MISR_EOI     (1 << 0)
+#define GICH_MISR_U       (1 << 1)
+#define GICH_MISR_LRENP   (1 << 2)
+#define GICH_MISR_NP      (1 << 3)
+#define GICH_MISR_VGRP0E  (1 << 4)
+#define GICH_MISR_VGRP0D  (1 << 5)
+#define GICH_MISR_VGRP1E  (1 << 6)
+#define GICH_MISR_VGRP1D  (1 << 7)
