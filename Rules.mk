@@ -43,6 +43,10 @@ $(BUILDDIR)%.dtb: $(SRCDIR)%.dts
 	$(call quietprint, $@)
 	$(QUIET)$(DTC) $(DTCFLAGS) -I dts -O dtb -o $@ $<
 
+$(BUILDDIR)%.dtb.o: $(BUILDDIR)%.dtb
+	$(call quietprint, $@)
+	$(QUIET)$(REALLD) -r -b binary -o $@ $<
+
 $(BUILDDIR)%.o: $(SRCDIR)%.c
 	$(call quietprint, $@)
 	$(QUIET)$(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -c $< -o $@

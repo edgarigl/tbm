@@ -1,9 +1,6 @@
 OUTPUT_FORMAT("elf64-littleaarch64")
 OUTPUT_ARCH(aarch64)
 TARGET(binary)
-/* FIXME: Magic ./ makes ld accept binaries ? */
-INPUT(./zynqmp-apu.dtb)
-
 INCLUDE "configs/zynqmp-mem.ldh"
 
 SECTIONS
@@ -40,7 +37,7 @@ SECTIONS
 	/* Can be reused after dtb parsing.  */
 	_dtb = .;
 	.dtb : {
-		./zynqmp-apu.dtb
+		KEEP(./zynqmp-apu.dtb.o)
 	} >ocm
 	_dtb_end = .;
 

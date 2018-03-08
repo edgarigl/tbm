@@ -56,6 +56,7 @@ CC      = $(CROSS)gcc
 CXX     = $(CROSS)g++
 AS      = $(CC)
 LD      = $(CROSS)gcc
+REALLD  = $(CROSS)ld
 SIZE	= $(CROSS)size
 OBJCOPY	= $(CROSS)objcopy
 OBJDUMP	= $(CROSS)objdump
