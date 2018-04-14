@@ -121,9 +121,6 @@ void cpu_test(void)
 	printf("\n\nMicroBlaze v=%x %s endian CPU. " __DATE__ " " __TIME__ "\n",
 			version_code, endian_s);
 
-/*	petasupport_test_loop_local(); */
-#if 1
-#if 1
 	check_bitfield();
 	check_stackprot();
 	check_clz();
@@ -152,9 +149,6 @@ void cpu_test(void)
 	check_longlong();
 	check_extend_sidi();
 	check_df();
-	check_gcc_930603_1();
-#endif
-#endif
 
 	printf("ctest done at %x\n", clock());
 }
