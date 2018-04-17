@@ -39,22 +39,19 @@ double _check_df_reg_to_add_reg(double a, double b) __attribute__ ((noinline));
 double _check_df_reg_to_add_reg(double a, double b)
 {
 	double r;
-	printf("a=%x.%x\n", ((unsigned int *)&a)[0], ((unsigned int *)&a)[1]);
-	printf("b=%x.%x\n", ((unsigned int *)&b)[0], ((unsigned int *)&b)[1]);
+//	printf("a=%x.%x\n", ((unsigned int *)&a)[0], ((unsigned int *)&a)[1]);
+//	printf("b=%x.%x\n", ((unsigned int *)&b)[0], ((unsigned int *)&b)[1]);
 	r = a + b;
-	printf("r=%x.%x sizeof=%ld\n", ((unsigned int *)&r)[0], ((unsigned int *)&r)[1], sizeof r);
+//	printf("r=%x.%x sizeof=%ld\n", ((unsigned int *)&r)[0], ((unsigned int *)&r)[1], sizeof r);
 	return r;
 }
 
 void check_df_reg_to_reg(void)
 {
-	long long r;
 	printf("%s\n", __func__);
 	if (_check_df_reg_to_reg(0xeddeeddeeddeeddeLL) != 0xeddeeddeeddeeddeLL) {
 		err();
 	}
-	r = _check_df_reg_to_add_reg(0xeddeeddeeddeeddeLL, 0x1000000000000001LL);
-	printf("r=%x.%x\n", ((unsigned int *)&r)[0], ((unsigned int *)&r)[1]);
 	if (_check_df_reg_to_add_reg(0xeddeeddeeddeeddeLL, 0x1000000000000001LL) != 0xfddeeddeeddeeddfLL) {
 		err();
 	}

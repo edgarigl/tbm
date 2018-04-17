@@ -34,8 +34,9 @@ static void va_test(char *format, ...)
 
 void check_varargs(void)
 {
+	char *fmt = "kalle";
 	puts(__func__);
-	va_test("kalle", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+	va_test(fmt, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 #if 0
 	puthex("kalle"); uart_putchar('\n');
 	puthex(g_fmt); uart_putchar('\n');
@@ -45,7 +46,7 @@ void check_varargs(void)
 	puthex(a[3]); uart_putchar('\n');
 	puthex(a[4]); uart_putchar('\n');
 #endif
-	if (g_fmt != "kalle")
+	if (g_fmt != fmt)
 		err();
 	if (a[0] != 1)
 		err();

@@ -1,13 +1,26 @@
 #include <stdio.h>
+#include <string.h>
+#include <time.h>
 #include "testcalls.h"
 #include "sys.h"
 
-extern int check_c_sub(void);
-extern void check_parity(void);
-extern void check_cmp(void);
-extern void check_mul(void);
-extern void check_div(void);
-extern void check_mov(void);
+int check_c_sub(void);
+void check_parity(void);
+void check_cmp(void);
+void check_mul(void);
+void check_div(void);
+void check_mov(void);
+void check_mov(void);
+void check_stackprot(void);
+void check_clz(void);
+void check_mbar(void);
+void check_case(void);
+void check_varargs(void);
+void check_varargs2(void);
+void check_ldst_rev(void);
+void check_longlong(void);
+void check_extend_sidi(void);
+void check_df(void);
 
 __attribute__ ((weak)) void check_bitfield(void)
 {
@@ -77,7 +90,7 @@ void check_memcpy(void)
 		err();
 
 
-	memcpy(d, "nisse", 6);
+	memcpy((void *) d, "nisse", 6);
 
 	if (d[0] != 'n')
 		err();
@@ -150,7 +163,7 @@ void cpu_test(void)
 	check_extend_sidi();
 	check_df();
 
-	printf("ctest done at %x\n", clock());
+	printf("ctest done at %lx\n", clock());
 }
 
 __testcall(cpu_test);

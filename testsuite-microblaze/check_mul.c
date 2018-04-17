@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include "sys.h"
 
+int uart_putchar(int c);
+
 struct multest_t {
 	unsigned int a, b, r;
 };

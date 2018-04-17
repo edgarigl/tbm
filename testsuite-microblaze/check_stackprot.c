@@ -1,26 +1,26 @@
 /* Test cases for load reverse.  */
 #include "sys.h"
 
-void set_slr(void *p)
+void set_slr(uintptr_t p)
 {
 	__asm__ __volatile__ ("mts\trslr, %0\n" : : "r" (p));
 }
 
-void *get_slr(void)
+uintptr_t get_slr(void)
 {
-	void *r;
+	uintptr_t r;
 	__asm__ __volatile__ ("mfs\t%0, rslr\n" : "=r" (r));
 	return r;
 }
 
-void set_shr(void *p)
+void set_shr(uintptr_t p)
 {
 	__asm__ __volatile__ ("mts\trshr, %0\n" : : "r" (p));
 }
 
-void *get_shr(void)
+uintptr_t get_shr(void)
 {
-	void *r;
+	uintptr_t r;
 	__asm__ __volatile__ ("mfs\t%0, rshr\n" : "=r" (r));
 	return r;
 }
