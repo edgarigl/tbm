@@ -19,7 +19,6 @@ union {
 	unsigned int d32;
 } num1 = {0};
 
-#if 1
 void check_native_load(void)
 {
 	printf("%s\n", __func__);
@@ -55,10 +54,8 @@ void check_native_load(void)
                 || num1.d8[3] != 0x78)
 		err();
 }
-#endif
 
 #if HAVE_LDST_REV
-#if 1
 void check_reverse_load32(void)
 {
 	unsigned int w;
@@ -72,14 +69,12 @@ void check_reverse_load32(void)
 	if (!littleblaze && w != 0x78563412)
 		err();
 }
-#endif
 
 void check_reverse_load16(void)
 {
 	unsigned int w;
 	volatile void *ptr;
 
-#if 1
 	ptr = &num1.d16[0];
 	printf("%s %p\n", __func__, ptr);
 	asm ("lhur	%0, r0, %1\n" : "=r" (w) : "r" (ptr));
@@ -89,7 +84,7 @@ void check_reverse_load16(void)
 		err();
 	if (!littleblaze && w != 0x7856)
 		err();
-#endif
+
 	ptr = &num1.d16[1];
 	printf("%s ptr=%p\n", __func__, ptr);
 	asm ("lhur	%0, r0, %1\n" : "=r" (w) : "r" (ptr));
@@ -101,7 +96,6 @@ void check_reverse_load16(void)
 		err();
 }
 
-#if 1
 void check_reverse_load8(void)
 {
 	unsigned int w;
@@ -225,7 +219,6 @@ void check_reverse_store8(void)
 
 }
 #endif
-#endif
 
 void check_ldst_rev(void)
 {
@@ -234,8 +227,6 @@ void check_ldst_rev(void)
 	num1.d8[2] = 0x56;
 	num1.d8[3] = 0x78;
 
-	check_reverse_load16();
-#if 1
 	check_native_load();
 #if HAVE_LDST_REV
 	check_reverse_load32();
@@ -244,6 +235,5 @@ void check_ldst_rev(void)
 	check_reverse_store32();
 	check_reverse_store16();
 	check_reverse_store8();
-#endif
 #endif
 }
