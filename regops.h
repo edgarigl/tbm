@@ -3,7 +3,7 @@
 
 #include "bitops.h"
 
-static inline void reg32_waitformask(uint32_t *addr, uint32_t mask, uint32_t val)
+static inline void reg32_waitformask(phys_addr_t addr, uint32_t mask, uint32_t val)
 {
 	uint32_t r;
 
@@ -12,22 +12,22 @@ static inline void reg32_waitformask(uint32_t *addr, uint32_t mask, uint32_t val
 	} while ((r & mask) != val);
 }
 
-static inline void reg32_write64le(uint32_t *addr, uint64_t val)
+static inline void reg32_write64le(phys_addr_t addr, uint64_t val)
 {
 	writel(addr, val);
-	writel(addr + 1, val >> 32);
+	writel(addr + 4, val >> 32);
 }
 
-static inline uint64_t reg64_read(uint64_t *addr)
+static inline uint64_t reg64_read(phys_addr_t addr)
 {
 	uint64_t r;
 	r = *(volatile uint64_t *) addr;
 	return r;
 }
 
-static inline void reg64_write(uint64_t *addr, uint64_t val)
+static inline void reg64_write(phys_addr_t addr, uint64_t val)
 {
-	*addr = val;
+	*(volatile uint64_t *) addr = val;
 }
 
 #define reg32_field(v, RG, RN, RF)				\

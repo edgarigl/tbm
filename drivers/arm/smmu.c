@@ -11,7 +11,7 @@
 /* We should really be registering this kind of drivers some where
  * but got no time now, so we'll just hack it into a global.  */
 static struct smmu {
-	void *base;
+	phys_addr_t base;
 	unsigned int cb[2];
 	struct mmu_ctx *ctx[2];
 } smmu;
@@ -43,14 +43,14 @@ bool smmu_map(bool s1, bool s2, bool write, uintptr_t va, uintptr_t *pa)
 		[0] = SMMU500_SMMU_GATS1PR,
 		[1] = SMMU500_SMMU_GATS12PR
 	};
-	uint64_t *addr;
+	uint64_t addr;
 	uint64_t v = va;
 	uint64_t par;
 	bool err;
 
 	assert(s1);
-	addr = (void *) (m->base + regs[s2]);
-	addr += write;
+	addr = m->base + regs[s2];
+	addr += write * 8;
 
 	v |= m->cb[0];
 
@@ -129,7 +129,7 @@ void smmu_init_ctx(struct mmu_ctx *s1_mmu, struct mmu_ctx *s2_mmu,
 	writel(m->base + SMMU500_SMMU_SMR0, 0xFFFE0001);
 
 	if (enable && m->ctx[0]) {
-		void *cb_base = m->base + cb_offset(s1_cb);
+		phys_addr_t cb_base = m->base + cb_offset(s1_cb);
 
 		reg32_write64le(cb_base + SMMU500_SMMU_CB0_TTBR0_LOW,
 				(uintptr_t) m->ctx[0]->pt.root);
@@ -152,7 +152,7 @@ void smmu_init_ctx(struct mmu_ctx *s1_mmu, struct mmu_ctx *s2_mmu,
 	}
 
 	if (enable && m->ctx[1]) {
-		void *cb_base = m->base + cb_offset(s2_cb);
+		phys_addr_t cb_base = m->base + cb_offset(s2_cb);
 
 		reg32_write64le(cb_base + SMMU500_SMMU_CB0_TTBR0_LOW,
 				(uintptr_t) m->ctx[1]->pt.root);
@@ -180,7 +180,7 @@ static void smmu_probe_init(struct smmu *m)
 
 	r = readl(m->base + SMMU500_SMMU_SIDR7);
 
-	printf("SMMU-500: v%d.%d at %p %p\n",
+	printf("SMMU-500: v%d.%d at %lx %lx\n",
 		reg32_field(r, SMMU500, SMMU_SIDR7, MAJOR),
 		reg32_field(r, SMMU500, SMMU_SIDR7, MINOR), m->base, m->base + SMMU500_SMMU_SIDR0);
 
@@ -224,14 +224,14 @@ static void smmu_probe_init(struct smmu *m)
 
 static bool smmu_probe(void *fdt, int node, const char *compat)
 {
-	void *p;
+	phys_addr_t p;
 	static bool bound = false;
 
 	if (bound)
 		return false;
 
-	p = dt_map(fdt, node, 0);
-	printf("Bound %s at %p\n", compat, p);
+	p = (phys_addr_t) dt_map(fdt, node, 0);
+	printf("Bound %s at %lx\n", compat, p);
 	smmu.base = p;
 	bound = true;
 

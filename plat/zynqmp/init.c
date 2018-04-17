@@ -241,9 +241,9 @@ static void release_timestamp_cnt(struct ronaldo_version *v)
 
 	printf("Setup freq %dhz\n", freq);
 	/* Set the freq. These regs are wrong, so use literal addresses.  */
-	writel((void *) 0xFF260020, freq);
+	writel(0xFF260020, freq);
 	mb();
-	writel((void *) 0xFF260000, 0x1);
+	writel(0xFF260000, 0x1);
 	mb();
 
 #ifdef __aarch64__

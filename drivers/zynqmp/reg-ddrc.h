@@ -8,7 +8,7 @@ extern "C" {
 /**
  * DDRC Base Address
  */
-#define DDRC_BASEADDR      ((char *) DDRC)
+#define DDRC_BASEADDR      DDRC
 
 /**
  * Register: DDRC_MSTR

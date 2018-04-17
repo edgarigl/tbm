@@ -18,7 +18,7 @@
 
 #define R_CTRL			0x08
 
-static inline bool xlx_uart_tx_full(char *base)
+static inline bool xlx_uart_tx_full(phys_addr_t base)
 {
 	uint32_t r;
 
@@ -26,7 +26,7 @@ static inline bool xlx_uart_tx_full(char *base)
 	return r & TX_FIFO_FULL_MASK;
 }
 
-int xlx_uart_putchar(char *base, int c)
+int xlx_uart_putchar(phys_addr_t base, int c)
 {
 	/* Wait for space.  */
 	while (xlx_uart_tx_full(base))
@@ -38,7 +38,7 @@ int xlx_uart_putchar(char *base, int c)
 
 #ifdef UARTLITE_BASE
 int uart_putchar(int c) {
-    return xlx_uart_putchar((char *) UARTLITE_BASE, c);
+    return xlx_uart_putchar(UARTLITE_BASE, c);
 }
 
 void uart_init(void) { }

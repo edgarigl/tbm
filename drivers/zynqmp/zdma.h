@@ -56,10 +56,10 @@ struct zdma_descr {
 };
 
 /* Compute a base address for a given block and channel.  */
-unsigned char *zdma_base(char *base, unsigned int ch);
-void zdma_reset(char *base, unsigned int ch);
+phys_addr_t zdma_base(phys_addr_t base, unsigned int ch);
+void zdma_reset(phys_addr_t base, unsigned int ch);
 /* Wait for a given state.  */
-int zdma_wait_for(char *base, unsigned int ch, int wstate);
+int zdma_wait_for(phys_addr_t base, unsigned int ch, int wstate);
 /* Allocate a set of continous descriptors with proper alignment.  */
 struct zdma_descr *zdma_descr_alloc(struct alloc_ctx *area,
 				unsigned int nr, char **mem);
@@ -68,4 +68,4 @@ void zdma_descr_init(struct zdma_descr *d, void *addr,
 			    unsigned int cmd,
 			    bool intr, bool ptype, bool coherent);
 /* Write a 64bit value into two contigous regs.  */
-void zdma_write64(void *base, uint64_t val64);
+void zdma_write64(phys_addr_t base, uint64_t val64);

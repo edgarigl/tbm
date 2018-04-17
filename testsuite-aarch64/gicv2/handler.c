@@ -17,7 +17,7 @@ struct irq_ctx {
     uint32_t irq;
     int timer_id;
     bool is_vcpu;
-    void *gicc_base;
+    phys_addr_t gicc_base;
 };
 
 static uint64_t counter[4] = { 0 };
@@ -262,6 +262,7 @@ void token_assert_false_lvl(struct irq_ctx *ctx, void *opaque)
     assert(!token[lvl]);
 }
 
+#ifdef GIC_VCPU_BASE
 void virt_inject_irq(struct irq_ctx *ctx, void *opaque)
 {
     const struct virt_inject_irq_params *p;
@@ -336,7 +337,7 @@ void virt_clear_eoi_in_lr(struct irq_ctx *ctx, void *opaque)
 
     gich_set_lr_entry(lr, 0, 0, 0, 0, 0, 0);
 }
-
+#endif
 
 static inline bool is_vcpu(int cur_el)
 {
@@ -347,9 +348,14 @@ static inline bool is_vcpu(int cur_el)
     return cur_el == 1;
 }
 
-static inline void * get_gicc_base(bool is_vcpu)
+static inline phys_addr_t get_gicc_base(bool is_vcpu)
 {
+#ifdef GIC_VCPU_BASE
     return is_vcpu ? GIC_VCPU_BASE : GIC_CPU_BASE;
+#else
+    assert(is_vcpu == false);
+    return GIC_CPU_BASE;
+#endif
 }
 
 static inline void generic_handler(enum e_irq_type type)

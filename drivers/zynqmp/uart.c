@@ -32,11 +32,11 @@
 #define R_UART_RX    (0x30)
 #define R_UART_BDIV  (0x34)
 
-static char *global_console_base = (void *) UART0;
+static phys_addr_t global_console_base = UART0;
 
 int uart_putchar(int c)
 {
-	char *base = global_console_base;
+	phys_addr_t base = global_console_base;
 	uint32_t status;
 
 	/* Wait for an empty slot.  */
@@ -50,7 +50,7 @@ int uart_putchar(int c)
 
 void uart_init(void)
 {
-	char *base = global_console_base;
+	phys_addr_t base = global_console_base;
 
 #ifdef __ronaldo__
 	uint32_t r;
@@ -79,14 +79,14 @@ void uart_init(void)
 
 static bool uart_probe(void *fdt, int node, const char *compat)
 {
-	void *p;
+	phys_addr_t p;
 	static bool bound = false;
 
 	if (bound)
 		return false;
 
-	p = dt_map(fdt, node, 0);
-	printf("Bound %s at %p\n", compat, p);
+	p = (phys_addr_t) dt_map(fdt, node, 0);
+	printf("Bound %s at %lx\n", compat, p);
 	global_console_base = p;
 	bound = true;
 	return true;

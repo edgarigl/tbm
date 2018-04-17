@@ -50,31 +50,34 @@ struct gic_info {
     struct gic_cpu_info vcpu;
 };
 
-static inline void gic_end_of_irq(void *base, uint32_t irq)
+static inline void gic_end_of_irq(phys_addr_t base, uint32_t irq)
 {
     writel(base + GICC_EOIR, irq);
     mb();
     ibarrier();
 }
 
-static inline uint32_t gic_ack_irq(void *base)
+static inline uint32_t gic_ack_irq(phys_addr_t base)
 {
     return readl(base + GICC_IAR);
 }
 
-static inline uint32_t gic_running_prio(void *base)
+static inline uint32_t gic_running_prio(phys_addr_t base)
 {
     return readl(base + GICC_RPR);
 }
 
+#ifdef GIC_VIFACE_BASE
 static inline int gich_get_next_lr_entry(void)
 {
     uint32_t next_lr = readl(GIC_VIFACE_BASE + GICH_ELSR0);
     return ctz32(next_lr);
 }
+#endif
 
 #include "trace.h"
 
+#ifdef GIC_VIFACE_BASE
 static inline void gich_set_lr_entry(int entry, bool hw, bool grp1,
                                      int state, int prio,
                                      int phys_id, int virt_id)
@@ -110,7 +113,9 @@ static inline void gich_write(size_t reg, uint32_t val)
     writel(GIC_VIFACE_BASE + reg, val);
     mb();
 }
+#endif
 
+#ifdef GIC_VCPU_BASE
 static inline uint32_t gicv_read(size_t reg)
 {
     return readl(GIC_VCPU_BASE + reg);
@@ -121,7 +126,9 @@ static inline void gicv_write(size_t reg, uint32_t val)
     writel(GIC_VCPU_BASE + reg, val);
     mb();
 }
+#endif
 
+#ifdef GIC_VIFACE_BASE
 static inline uint32_t gich_read_hcr(void)
 {
     return readl(GIC_VIFACE_BASE + GICH_HCR);
@@ -147,6 +154,7 @@ static inline uint32_t gich_read_misr(void)
 {
     return readl(GIC_VIFACE_BASE + GICH_MISR);
 }
+#endif
 
 void gic_configure(const struct gic_info *info);
 void gic_teardown(const struct gic_info *info);

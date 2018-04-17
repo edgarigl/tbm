@@ -22,15 +22,15 @@
 #define D(x)
 
 /* Compute a base address for a given block and channel.  */
-unsigned char *zdma_base(char *base, unsigned int ch)
+phys_addr_t zdma_base(phys_addr_t base, unsigned int ch)
 {
 	unsigned int ch_offset = ch * 0x10000;
-	unsigned char *ch_base = (unsigned char *) base + ch_offset;
+	phys_addr_t ch_base = base + ch_offset;
 
 	return ch_base;
 }
 
-void zdma_reset(char *base, unsigned int ch)
+void zdma_reset(phys_addr_t base, unsigned int ch)
 {
 #if 0
 	unsigned char *ch_base = zdma_base(base, ch);
@@ -42,9 +42,9 @@ void zdma_reset(char *base, unsigned int ch)
 }
 
 /* Wait for a given state.  */
-int zdma_wait_for(char *base, unsigned int ch, int wstate)
+int zdma_wait_for(phys_addr_t base, unsigned int ch, int wstate)
 {
-	unsigned char *ch_base = zdma_base(base, ch);
+	phys_addr_t ch_base = zdma_base(base, ch);
 	int status;
 
 	do {
@@ -81,10 +81,8 @@ void zdma_descr_init(struct zdma_descr *d, void *addr,
 }
 
 /* Write a 64bit value into two contigous regs.  */
-void zdma_write64(void *base, uint64_t val64)
+void zdma_write64(phys_addr_t base, uint64_t val64)
 {
-	uint32_t *base32 = base;
-
-	writel(base32, val64);
-	writel(base32 + 1, val64 >> 32);
+	writel(base, val64);
+	writel(base + 4, val64 >> 32);
 }

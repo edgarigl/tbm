@@ -82,7 +82,7 @@ static void configure_dist(const struct gic_info *info)
     mb();
 }
 
-static void configure_cpu_iface(const struct gic_cpu_info *info, void *base)
+static void configure_cpu_iface(const struct gic_cpu_info *info, phys_addr_t base)
 {
     uint32_t c_ctrl = 0;
 
@@ -106,6 +106,7 @@ static void configure_cpu_iface(const struct gic_cpu_info *info, void *base)
     mb();
 }
 
+#ifdef GIC_VIFACE_BASE
 static bool configure_virt(const struct gic_virt_info *info)
 {
     uint32_t h_hcr = 0;
@@ -123,15 +124,18 @@ static bool configure_virt(const struct gic_virt_info *info)
 
     return info->en;
 }
+#endif
 
 void gic_configure(const struct gic_info *info)
 {
     configure_dist(info);
     configure_cpu_iface(&info->cpu, GIC_CPU_BASE);
 
+#ifdef GIC_VIFACE_BASE
     if (configure_virt(&info->virt)) {
         configure_cpu_iface(&info->vcpu, GIC_VCPU_BASE);
     }
+#endif
 }
 
 void gic_teardown(const struct gic_info *info)

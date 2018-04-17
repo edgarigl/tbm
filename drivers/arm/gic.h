@@ -3,7 +3,7 @@
 
 #include "reg-gic.h"
 
-static inline void gicd_set_irq_group(char *base, unsigned int irq,
+static inline void gicd_set_irq_group(phys_addr_t base, unsigned int irq,
 					bool group)
 {
 	unsigned int offset = (irq / 32) * 4;
@@ -16,7 +16,7 @@ static inline void gicd_set_irq_group(char *base, unsigned int irq,
 	writel(base + GICD_IGROUPR + offset, r);
 }
 
-static inline void gicd_set_sgi(char *base, unsigned cpu,
+static inline void gicd_set_sgi(phys_addr_t base, unsigned cpu,
                                 unsigned int irq)
 {
 	uint32_t r;
@@ -26,13 +26,13 @@ static inline void gicd_set_sgi(char *base, unsigned cpu,
 	writel(base + GICD_SGIR, r);
 }
 
-static inline void gicd_clear_sgi(char *base, unsigned cpu,
+static inline void gicd_clear_sgi(phys_addr_t base, unsigned cpu,
                                 unsigned int irq)
 {
 	writeb(base + GICD_CPENDSGIR + irq, 0xff);
 }
 
-static inline void gicd_set_pending(char *base, unsigned int irq, bool v)
+static inline void gicd_set_pending(phys_addr_t base, unsigned int irq, bool v)
 {
 	unsigned int offset = (irq / 32) * 4;
 	unsigned int bitoffset = irq % 32;
@@ -44,7 +44,7 @@ static inline void gicd_set_pending(char *base, unsigned int irq, bool v)
 	writel(base + GICD_ISPENDR + offset, r);
 }
 
-static inline bool gicd_irq_is_pending(char *base, unsigned int irq)
+static inline bool gicd_irq_is_pending(phys_addr_t base, unsigned int irq)
 {
 	unsigned int offset = (irq / 32) * 4;
 	unsigned int bitoffset = irq % 32;
@@ -54,7 +54,7 @@ static inline bool gicd_irq_is_pending(char *base, unsigned int irq)
 	return r;
 }
 
-static inline void gicd_set_irq_target(char *base, unsigned int irq,
+static inline void gicd_set_irq_target(phys_addr_t base, unsigned int irq,
 					unsigned int target)
 {
 	unsigned int wordoffset = irq & ~3;
@@ -66,18 +66,18 @@ static inline void gicd_set_irq_target(char *base, unsigned int irq,
 	writel(base + GICD_ITARGETSR + wordoffset, r);
 }
 
-static inline void gicd_set_irq_prio(char *base, unsigned int irq,
+static inline void gicd_set_irq_prio(phys_addr_t base, unsigned int irq,
                                      uint8_t prio)
 {
     writeb(base + GICD_IPRIORITYR + irq, prio);
 }
 
-static inline uint8_t gicd_get_irq_prio(char *base, unsigned int irq)
+static inline uint8_t gicd_get_irq_prio(phys_addr_t base, unsigned int irq)
 {
     return readb(base + GICD_IPRIORITYR + irq);
 }
 
-static inline void gicd_enable_irq(char *base, unsigned int irq)
+static inline void gicd_enable_irq(phys_addr_t base, unsigned int irq)
 {
 	unsigned int offset = (irq / 32) * 4;
 	unsigned int bitoffset = irq % 32;
@@ -88,7 +88,7 @@ static inline void gicd_enable_irq(char *base, unsigned int irq)
 	writel(base + GICD_ISENABLER + offset, r);
 }
 
-static inline void gicd_disable_irq(char *base, unsigned int irq)
+static inline void gicd_disable_irq(phys_addr_t base, unsigned int irq)
 {
 	unsigned int offset = (irq / 32) * 4;
 	unsigned int bitoffset = irq % 32;

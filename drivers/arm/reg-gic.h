@@ -2,10 +2,14 @@
 # error Please specify GIC_DIST_BASE_ADDR and GIC_CPU_BASE_ADDR in the configuration file
 #endif
 
-#define GIC_DIST_BASE ((void *) GIC_DIST_BASE_ADDR)
-#define GIC_CPU_BASE ((void *) GIC_CPU_BASE_ADDR)
-#define GIC_VIFACE_BASE ((void *) GIC_VIFACE_BASE_ADDR)
-#define GIC_VCPU_BASE ((void *) GIC_VCPU_BASE_ADDR)
+#define GIC_DIST_BASE GIC_DIST_BASE_ADDR
+#define GIC_CPU_BASE GIC_CPU_BASE_ADDR
+#ifdef GIC_VIFACE_BASE_ADDR
+#define GIC_VIFACE_BASE GIC_VIFACE_BASE_ADDR
+#endif
+#ifdef GIC_VCPU_BASE_ADDR
+#define GIC_VCPU_BASE GIC_VCPU_BASE_ADDR
+#endif
 
 #define GICD_CTRL       0x0
 #define GICD_IGROUPR    0x80

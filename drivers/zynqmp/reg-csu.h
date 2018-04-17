@@ -10,7 +10,7 @@ extern "C" {
 /**
  * CSU Base Address
  */
-#define CSU_BASEADDR      ((void *) CSU)
+#define CSU_BASEADDR      CSU
 
 /**
  * Register: CSU_CSU_STATUS

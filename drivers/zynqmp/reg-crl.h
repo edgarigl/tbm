@@ -8,7 +8,7 @@ extern "C" {
 /**
  * CRL_APB Base Address
  */
-#define CRL_APB_BASEADDR      ((char *) CRL_APB)
+#define CRL_APB_BASEADDR      CRL_APB
 
 /**
  * Register: CRL_APB_BOOT_MODE_USER

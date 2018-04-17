@@ -8,7 +8,7 @@ extern "C" {
 /**
  * FPD_SLCR Base Address
  */
-#define FPD_SLCR_BASEADDR      ((char *) FPD_SLCR)
+#define FPD_SLCR_BASEADDR      (FPD_SLCR)
 
 /**
  * Register: FPD_SLCR_WPROT0
