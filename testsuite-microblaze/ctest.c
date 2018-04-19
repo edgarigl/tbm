@@ -144,8 +144,6 @@ void cpu_test(void)
 	uint32_t pvr0;
 	int x;
 
-	check_msr();
-	while (1);
 
 	__asm__ __volatile__ ("mfs\t%0, rpvr0\n" : "=r" (pvr0));
 	version_code = pvr0 >> 8;
@@ -182,6 +180,7 @@ void cpu_test(void)
 	check_longlong();
 	check_extend_sidi();
 	check_df();
+	check_msr();
 
 	printf("ctest done at %lx\n", clock());
 }
