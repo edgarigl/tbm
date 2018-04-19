@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <assert.h>
 #include "testcalls.h"
 #include "sys.h"
 
@@ -113,6 +114,22 @@ static int check_ret(void)
 	return 0xaaaabbbb;
 }
 
+#define MSR_PVR_SHIFT 10
+#define MSR_PVR (1U << MSR_PVR_SHIFT)
+static void check_msr(void)
+{
+	uint32_t msr;
+	uint32_t tmp;
+
+	asm __volatile__ ("mfs %0, rmsr\n" : "=r" (msr));
+	printf("msr=%x\n", msr);
+	tmp = msr ^ (MSR_PVR);
+	asm __volatile__ ("mts rmsr, %0\nnop\n" : : "r" (tmp));
+	asm __volatile__ ("mfs %0, rmsr\n" : "=r" (tmp));
+	printf("msr=%x\n", tmp);
+	assert((tmp & MSR_PVR) == (msr & MSR_PVR));
+}
+
 unsigned int tsta[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
 
 #ifdef _LITTLE_ENDIAN
@@ -126,6 +143,9 @@ void cpu_test(void)
 	uint8_t version_code;
 	uint32_t pvr0;
 	int x;
+
+	check_msr();
+	while (1);
 
 	__asm__ __volatile__ ("mfs\t%0, rpvr0\n" : "=r" (pvr0));
 	version_code = pvr0 >> 8;
