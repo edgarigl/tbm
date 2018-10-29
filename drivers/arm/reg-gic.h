@@ -36,15 +36,16 @@
 #define GICC_IIDR   0xfc
 #define GICC_DIR    0x1000
 
-#define GICH_HCR    0x000
-#define GICH_VTR    0x004
-#define GICH_VMCR   0x008
-#define GICH_MISR   0x010
-#define GICH_EISR0  0x020
-#define GICH_EISR1  0x024
-#define GICH_ELSR0  0x030
-#define GICH_ELSR1  0x034
-#define GICH_LR     0x100
+#define GICH_HCR     0x000
+#define GICH_VTR     0x004
+#define GICH_VMCR    0x008
+#define GICH_MISR    0x010
+#define GICH_EISR0   0x020
+#define GICH_EISR1   0x024
+#define GICH_ELRSR0  0x030
+#define GICH_ELRSR1  0x034
+#define GICH_APR     0x0f0
+#define GICH_LR      0x100
 
 #define GICH_MISR_EOI     (1 << 0)
 #define GICH_MISR_U       (1 << 1)

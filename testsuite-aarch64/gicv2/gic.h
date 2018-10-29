@@ -70,7 +70,7 @@ static inline uint32_t gic_running_prio(phys_addr_t base)
 #ifdef GIC_VIFACE_BASE
 static inline int gich_get_next_lr_entry(void)
 {
-    uint32_t next_lr = readl(GIC_VIFACE_BASE + GICH_ELSR0);
+    uint32_t next_lr = readl(GIC_VIFACE_BASE + GICH_ELRSR0);
     return ctz32(next_lr);
 }
 #endif
