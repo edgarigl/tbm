@@ -32,6 +32,7 @@
 #define GICC_RPR    0x14
 #define GICC_ABPR   0x1c
 #define GICC_AIAR   0x20
+#define GICC_APR    0xd0
 #define GICC_IIDR   0xfc
 #define GICC_DIR    0x1000
 
