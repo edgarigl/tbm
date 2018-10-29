@@ -121,7 +121,7 @@ void timer_ack(struct irq_ctx *ctx, void *opaque)
     _timer_ack(ctx->timer_id);
 }
 
-void timer_rearm(struct irq_ctx *ctx, void *opaque)
+static uint64_t get_current_tick(void)
 {
     uint64_t now;
 
@@ -129,8 +129,24 @@ void timer_rearm(struct irq_ctx *ctx, void *opaque)
     mb();
     ibarrier();
 
+    return now;
+}
+
+void timer_rearm(struct irq_ctx *ctx, void *opaque)
+{
+    uint64_t now = get_current_tick();
+
     counter[ctx->timer_id] = now;
     _timer_rearm(ctx->timer_id);
+}
+
+void timer_set_divisor(struct irq_ctx *ctx, void *opaque)
+{
+    uintptr_t divisor = (uintptr_t) opaque;
+    uint32_t cntfrq;
+
+    aarch64_mrs(cntfrq, "cntfrq_el0");
+    freq[ctx->timer_id] = cntfrq / divisor;
 }
 
 void timer_assert_el(struct irq_ctx *ctx, void *opaque)
@@ -169,9 +185,22 @@ void gic_eoi(struct irq_ctx *ctx, void *opaque)
 void gic_eoi_inexistant_irq(struct irq_ctx *ctx, void *opaque)
 {
     const uint32_t WRONG = 42;
+#ifdef DEBUG
+    int rpr_before = gic_running_prio(ctx->gicc_base), rpr_after;
+    uint32_t apr_before = readl(ctx->gicc_base + GICC_APR), apr_after;
+#endif
 
-    DPRINTF("ending a wrong irq %u.\n", WRONG);
+    DPRINTF("ending a wrong irq %u. Running prio before: %u\n", WRONG, rpr_before);
+    DPRINTF("APR before: %x\n", apr_before);
     gic_end_of_irq(ctx->gicc_base, WRONG);
+
+#ifdef DEBUG
+    rpr_after = gic_running_prio(ctx->gicc_base);
+    apr_after = readl(ctx->gicc_base + GICC_APR);
+#endif
+
+    DPRINTF("running prio after: %u\n", rpr_after);
+    DPRINTF("APR after: %u\n", apr_after);
 }
 
 void gic_deactivate_irq(struct irq_ctx *ctx, void *opaque)
@@ -191,6 +220,24 @@ void gic_deactivate_irq(struct irq_ctx *ctx, void *opaque)
     ibarrier();
 }
 
+void gic_deactivate_inexistant_irq(struct irq_ctx *ctx, void *opaque)
+{
+    const uint32_t WRONG = 42;
+
+    DPRINTF("deactivating a wrong irq %u.\n", WRONG);
+
+    writel(ctx->gicc_base + GICC_DIR, WRONG);
+    mb();
+    ibarrier();
+}
+
+void gic_assert_running_prio(struct irq_ctx *ctx, void *opaque)
+{
+    uint8_t rp = (uintptr_t) opaque;
+
+    assert(gic_running_prio(ctx->gicc_base) == rp);
+}
+
 void token_reset_self(struct irq_ctx *ctx, void *opaque)
 {
     token[timer_get_lvl(ctx->timer_id)] = false;
@@ -203,6 +250,7 @@ void token_set_self(struct irq_ctx *ctx, void *opaque)
 
 void token_wait_self(struct irq_ctx *ctx, void *opaque)
 {
+    DPRINTF("wfi waiting for token\n");
     while(!token_is_set(ctx->timer_id)) {
         cpu_wfi();
     }
@@ -263,12 +311,27 @@ void token_assert_false_lvl(struct irq_ctx *ctx, void *opaque)
 }
 
 #ifdef GIC_VCPU_BASE
+static void check_elrsr(int lr_num, bool expect_free)
+{
+    int elrsr;
+
+    if (lr_num >= 32) {
+        elrsr = gich_read_elrsr1();
+        lr_num -= 32;
+    } else {
+        elrsr = gich_read_elrsr0();
+    }
+
+    assert(((elrsr >> lr_num) & 0x1) == expect_free);
+}
+
 void virt_inject_irq(struct irq_ctx *ctx, void *opaque)
 {
     const struct virt_inject_irq_params *p;
     p = (struct virt_inject_irq_params *) opaque;
 
     int next_lr = gich_get_next_lr_entry();
+    check_elrsr(next_lr, true);
 
     DPRINTF("injecting irq %d at lr entry number %d\n",
             p->virt_id, next_lr);
@@ -276,6 +339,8 @@ void virt_inject_irq(struct irq_ctx *ctx, void *opaque)
     gich_set_lr_entry(next_lr, p->hw, p->grp1,
                       0x1, /* pending */
                       p->prio, p->phys_id, p->virt_id);
+
+    check_elrsr(next_lr, false);
 }
 
 void virt_assert_maint_irq(struct irq_ctx *ctx, void *opaque)

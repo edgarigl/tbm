@@ -134,6 +134,16 @@ static inline uint32_t gich_read_hcr(void)
     return readl(GIC_VIFACE_BASE + GICH_HCR);
 }
 
+static inline uint32_t gich_read_elrsr0(void)
+{
+    return readl(GIC_VIFACE_BASE + GICH_ELRSR0);
+}
+
+static inline uint32_t gich_read_elrsr1(void)
+{
+    return readl(GIC_VIFACE_BASE + GICH_ELRSR1);
+}
+
 static inline uint32_t gich_read_eisr0(void)
 {
     return readl(GIC_VIFACE_BASE + GICH_EISR0);
@@ -155,6 +165,11 @@ static inline uint32_t gich_read_misr(void)
     return readl(GIC_VIFACE_BASE + GICH_MISR);
 }
 #endif
+
+static inline uint32_t gich_read_apr(void)
+{
+    return readl(GIC_VIFACE_BASE + GICH_APR);
+}
 
 void gic_configure(const struct gic_info *info);
 void gic_teardown(const struct gic_info *info);

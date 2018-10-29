@@ -30,11 +30,11 @@
 
 # Give CFG the oportunity to override this rule.
 
+-include .config
+
 ifneq "$(CFG)" ""
 include $(CFG)
 endif
-
--include .config
 
 ARCH ?= microblaze
 BOARD ?= ronaldo

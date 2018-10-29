@@ -35,6 +35,7 @@ void timer_ack(struct irq_ctx *ctx, void *opaque);
 void timer_rearm(struct irq_ctx *ctx, void *opaque);
 void timer_assert_el(struct irq_ctx *ctx, void *opaque);
 void timer_assert_lvl(struct irq_ctx *ctx, void *opaque);
+void timer_set_divisor(struct irq_ctx *ctx, void *opaque);
 
 void nested_irq_enable(struct irq_ctx *ctx, void *opaque);
 void nested_irq_disable(struct irq_ctx *ctx, void *opaque);
@@ -42,6 +43,8 @@ void nested_irq_disable(struct irq_ctx *ctx, void *opaque);
 void gic_eoi(struct irq_ctx *ctx, void *opaque);
 void gic_eoi_inexistant_irq(struct irq_ctx *ctx, void *opaque);
 void gic_deactivate_irq(struct irq_ctx *ctx, void *opaque);
+void gic_deactivate_inexistant_irq(struct irq_ctx *ctx, void *opaque);
+void gic_assert_running_prio(struct irq_ctx *ctx, void *opaque);
 
 void token_reset_self(struct irq_ctx *ctx, void *opaque);
 void token_set_self(struct irq_ctx *ctx, void *opaque);

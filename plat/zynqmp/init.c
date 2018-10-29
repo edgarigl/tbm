@@ -116,8 +116,8 @@ static void plat_setup_mmu(unsigned int el)
 	/* Invalidate caches before enabling them.  */
 	a64_icache_invalidate(&rdo.caches);
 	a64_dcache_invalidate(&rdo.caches, false);
-	aarch64_enable_caches(el, true, true);
-	printf("EL%d I and D caches enabled\n", el);
+	/*aarch64_enable_caches(el, true, true);*/
+	/*printf("EL%d I and D caches enabled\n", el);*/
 
 	printf("RDO: enable MMU\n");
 	aarch64_mmu_setup(&mmu, el, true);
