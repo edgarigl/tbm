@@ -90,7 +90,7 @@ void a64_write_timer_tval(int timer, uint32_t tval)
 	}
 }
 
-void a64_write_timer_cval(int timer, uint32_t val)
+void a64_write_timer_cval(int timer, uint64_t val)
 {
 	switch (timer) {
 	case TIMER_PHYS:
