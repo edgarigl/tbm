@@ -53,6 +53,14 @@ SECTIONS
 		_ebss = . ;
 	} >ddr
 
+	_heap_start = .;
+	. += 0x2000;
+	_heap_end = .;
+
+	. = ALIGN(16);
+	_stack_end = .;
+	. += 0x2000;
+	_stack = .;
 	_end = .;
 
 	/DISCARD/ : { *(.eh_frame) }
