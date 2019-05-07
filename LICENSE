@@ -2,9 +2,23 @@ Copyright (c) 2009 Edgar E. Iglesias
 
 This test code was written by Edgar E. Iglesias initially for the C3P3U
 core. It has later been adapted to various other archs, including
-CRISv10 and MicroBlaze.
+CRISv10, MicroBlaze and ARM.
 
------
+TBM contains third party code that has been dropped in. These
+submodules are distributed under their respective project licenses.
+
+See:
+libfdt/libfdt.h (BSD License)
+zlib/README
+libminic/LICENSE (BSD License)
+
+Inidivual files containing license headers may override the default
+license and are distributed under the license that the specific file
+header specifies.
+
+Any files not part of libfdt, zlib or libminic that do not contain
+a file header with license terms are distributed under the following
+BSD license:
 
 Copyright (c) 2009, Edgar E. Iglesias <edgar.iglesias@gmail.com>
 All rights reserved.
