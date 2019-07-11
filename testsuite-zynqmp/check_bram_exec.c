@@ -70,6 +70,6 @@ void check_bram_exec(void)
 
 	/* Run the code and check the result.  */
 	val = func(val);
-	printf("val=%d\n", val);
+	printf("%s: val=%d\n", __func__, val);
 	assert(val == max_insns - 1);
 }
