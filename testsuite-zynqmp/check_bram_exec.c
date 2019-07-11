@@ -30,8 +30,9 @@ either expressed or implied, of the FreeBSD Project.
 */
 
 #include <stdio.h>
+#include <stdint.h>
+#include "sys.h"
 #include "testcalls.h"
-#include "ronaldo-version.h"
 
 static void a64_emit_add_x0_x0_1(uint32_t *mem)
 {
