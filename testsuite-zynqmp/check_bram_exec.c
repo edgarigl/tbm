@@ -44,10 +44,11 @@ static void a64_emit_ret(uint32_t *mem)
 	*mem = 0xd65f03c0;
 }
 
+#define BASE_BRAM 0xa0460000
 void check_bram_exec(void)
 {
-	uint32_t (*func)(uint32_t x) = (void *)0xa0460000;
-	uint32_t *insn = (uint32_t *) 0xa0460000;
+	uint32_t (*func)(uint32_t x) = (void *) BASE_BRAM;
+	uint32_t *insn = (uint32_t *) BASE_BRAM;
 	uint32_t val = 0;
 	/* Ram size is 0x400. Each insn is 4 bytes.  */
 	int max_insns = 0x400 / 4;
