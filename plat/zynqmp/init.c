@@ -98,6 +98,10 @@ static void plat_setup_mmu(unsigned int el)
 	aarch64_mmu_map(&mmu, 2ULL << 30, 2ULL << 30, MAPSIZE_1G, PROT_RW,
 			MAIR_IDX_DEVICE, MAP_SECURE);
 
+	/* Map cosim RAM.  */
+	aarch64_mmu_map(&mmu, 0xa0460000, 0xa0460000, MAPSIZE_2M, PROT_RWE,
+			MAIR_IDX_DEVICE, MAP_SECURE);
+
 	/* DEVICE area.  */
 	for (addr = 0xC0000000; addr < 0xFFC00000; addr += MAPSIZE_2M) {
 //		printf("Mapping DEVICE %llx - %llx\n", addr, addr + MAPSIZE_2M);
