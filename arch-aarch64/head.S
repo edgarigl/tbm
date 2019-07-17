@@ -78,6 +78,7 @@ ret_from_excp:
 	load_all_regs
 	isb
 	eret
+	.size vectors, . - vectors
 
 	.text
 	/* ELF entry point.  */
@@ -140,6 +141,7 @@ _secondary_entry_head:
 	isb
 
 	bl	secondary_entry
+	.size _secondary_entry_head, . - _secondary_entry_head
 
 	.global	tbm_fdt
 	.section .bss
