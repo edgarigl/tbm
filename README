@@ -37,6 +37,10 @@ qemu-system-aarch64 -M vexpress-a15,secure=on -cpu cortex-a53 -m 1024 -display n
 To run the vexpress-a32 tests, do the following:
 qemu-system-arm -M vexpress-a15,secure=on -serial stdio -display none -kernel build/vexpress/a32/ctest-bare
 
+
+To run the petalogix-s3adsp1800 tests, run the following:
+qemu-system-microblazeel -M petalogix-s3adsp1800 -serial stdio -kernel build/petalogix-s3adsp1800/main/ctest-bare
+
 Directory structure:
 
 configs/ Build configuration files.
