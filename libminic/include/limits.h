@@ -1,7 +1,7 @@
 #ifndef __limits_h__
 #define __limits_h__
 
-#ifdef __aarch64__
+#if defined(__aarch64__) || defined(_LP64)
 #define CHAR_BIT 8
 #define SCHAR_MIN (-128)
 #define SCHAR_MAX 127
