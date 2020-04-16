@@ -25,8 +25,7 @@ AARCH64_CROSS=aarch64-linux-gnu-
 The final binaries can be found in the build/* dir.
 
 To run the tests on the ZynqMP QEMU:
-qemu-system-aarch64 -M xlnx-zcu102,secure=off -serial stdio -kernel build/zynqmp/apu/ctest-bare
-qemu-system-aarch64 -M xlnx-zcu102,secure=on -serial stdio -kernel build/zynqmp/apu/ctest-bare
+qemu-system-aarch64 -M xlnx-zcu102,secure=on,virtualization=on -serial stdio -kernel build/zynqmp/apu/ctest-bare
 
 To run something on the ZynqMP's RPU:
 qemu-system-aarch64 -M xlnx-zcu102 -smp 6 -serial stdio -device loader,file=./build/zynqmp/rpu/ctest-bare,cpu-num=4 -global xlnx,zynqmp.boot-cpu="rpu-cpu[0]"
