@@ -37,13 +37,15 @@ AARCH64_CROSS=aarch64-linux-gnu-
 
 The final binaries can be found in the build/* dir.
 
-To run the tests on the ZynqMP QEMU:
+## ZynqMP
+
+### APU
 ```
 qemu-system-aarch64 -M xlnx-zcu102,secure=on,virtualization=on -serial stdio \
 	 -kernel build/zynqmp/apu/ctest-bare
 ```
 
-To run something on the ZynqMP's RPU:
+### RPU
 ```
 qemu-system-aarch64 -M xlnx-zcu102 -smp 6 -serial stdio \
 	-device loader,file=./build/zynqmp/rpu/ctest-bare,cpu-num=4 \
@@ -62,13 +64,25 @@ qemu-system-arm -M vexpress-a15,secure=on -serial stdio -display none \
 	-kernel build/vexpress/a32/ctest-bare
 ```
 
-RISCv64:
+## RISCv64
+
+### Build
 ```
 make CFG=configs/ariane.cfg
+```
+
+### RISCv64 on QEMU
+```
 qemu-system-riscv64 -M virt -m 256M -serial stdio -display none \
 	-device loader,file=./build/ariane_soc/ctest-bare,cpu-num=0
 ```
 
+### RISCv64 on Ariane test-harness
+```
+./work-ver/Variane_testharness ~/src/c/tbm/tbm/build/ariane_soc/ctest-bare
+```
+
+## MicroBlaze
 To run the petalogix-s3adsp1800 tests, run the following:
 ```
 qemu-system-microblazeel -M petalogix-s3adsp1800 -serial stdio \
