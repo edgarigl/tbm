@@ -77,11 +77,11 @@ qemu-system-microblazeel -M petalogix-s3adsp1800 -serial stdio \
 
 ## Directory structure
 
-configs/ Build configuration files.
-build/ Build products/artifacts.
-arch-*/ Contains arch specific boot code, interrupt setups and other stuff.
-testsuite-*/ Contains most of the test driving logic.
-drivers/*/ Contains drivers to be used by tests or other code.
-drivers-*/ Legacy naming for old drivers
-libminic/ A BSD licenced small C library implementation
-libfdt/ Flat Device Tree lib to parse device trees on boot
+* configs/ Build configuration files.
+* build/ Build products/artifacts.
+* arch-*/ Contains arch specific boot code, interrupt setups and other stuff.
+* testsuite-*/ Contains most of the test driving logic.
+* drivers/*/ Contains drivers to be used by tests or other code.
+* drivers-*/ Legacy naming for old drivers
+* libminic/ A BSD licenced small C library implementation
+* libfdt/ Flat Device Tree lib to parse device trees on boot
