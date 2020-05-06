@@ -4,8 +4,10 @@ This is a small bare-metal SW test/exploration environment.
 
 ## Dependencies
 
+```
 apt-get install gcc-arm-none-eabi gcc-aarch64-linux-gnu \
 	gcc-riscv64-linux-gnu
+```
 
 ## Build targets
 
