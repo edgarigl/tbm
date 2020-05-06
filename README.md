@@ -39,33 +39,40 @@ The final binaries can be found in the build/* dir.
 
 To run the tests on the ZynqMP QEMU:
 ```
-qemu-system-aarch64 -M xlnx-zcu102,secure=on,virtualization=on -serial stdio -kernel build/zynqmp/apu/ctest-bare
+qemu-system-aarch64 -M xlnx-zcu102,secure=on,virtualization=on -serial stdio \
+	 -kernel build/zynqmp/apu/ctest-bare
 ```
 
 To run something on the ZynqMP's RPU:
 ```
-qemu-system-aarch64 -M xlnx-zcu102 -smp 6 -serial stdio -device loader,file=./build/zynqmp/rpu/ctest-bare,cpu-num=4 -global xlnx,zynqmp.boot-cpu="rpu-cpu[0]"
+qemu-system-aarch64 -M xlnx-zcu102 -smp 6 -serial stdio \
+	-device loader,file=./build/zynqmp/rpu/ctest-bare,cpu-num=4 \
+	-global xlnx,zynqmp.boot-cpu="rpu-cpu[0]"
 ```
 
 To run the vexpress-a64 tests, do the following:
 ```
-qemu-system-aarch64 -M vexpress-a15,secure=on -cpu cortex-a53 -m 1024 -display none -serial stdio -kernel build/vexpress/a64/ctest-bare
+qemu-system-aarch64 -M vexpress-a15,secure=on -cpu cortex-a53 -m 1024 \
+	-display none -serial stdio -kernel build/vexpress/a64/ctest-bare
 ```
 
 To run the vexpress-a32 tests, do the following:
 ```
-qemu-system-arm -M vexpress-a15,secure=on -serial stdio -display none -kernel build/vexpress/a32/ctest-bare
+qemu-system-arm -M vexpress-a15,secure=on -serial stdio -display none \
+	-kernel build/vexpress/a32/ctest-bare
 ```
 
 RISCv64:
 ```
 make CFG=configs/ariane.cfg
-qemu-system-riscv64 -M virt -m 256M -serial stdio -display none -device loader,file=./build/ariane_soc/ctest-bare,cpu-num=0
+qemu-system-riscv64 -M virt -m 256M -serial stdio -display none \
+	-device loader,file=./build/ariane_soc/ctest-bare,cpu-num=0
 ```
 
 To run the petalogix-s3adsp1800 tests, run the following:
 ```
-qemu-system-microblazeel -M petalogix-s3adsp1800 -serial stdio -kernel build/petalogix-s3adsp1800/main/ctest-bare
+qemu-system-microblazeel -M petalogix-s3adsp1800 -serial stdio \
+	-kernel build/petalogix-s3adsp1800/main/ctest-bare
 ```
 
 ## Directory structure
