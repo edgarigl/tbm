@@ -1,7 +1,9 @@
 ARCH=none
 
+TEST_CONFIGS += configs/ariane.cfg
 TEST_CONFIGS += configs/vexpress-a32.cfg
 TEST_CONFIGS += configs/vexpress-a64.cfg
+TEST_CONFIGS += configs/zynqmp-apu.cfg
 
 foreach_cfg = for c in $(1); do $(2) CFG=$$c $(3); done
 
