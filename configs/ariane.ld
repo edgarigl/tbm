@@ -32,6 +32,9 @@ SECTIONS
 	.data :
 	{
 		_sdata = . ;
+		*(.sdata)
+		*(.sdata*)
+		. = ALIGN(8);
 		*(.data)
 		*(.data*)
 		. = ALIGN(8);
