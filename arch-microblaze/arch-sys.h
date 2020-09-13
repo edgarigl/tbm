@@ -2,7 +2,8 @@
 #define __ARCH_SYS_H__
 #include <stdint.h>
 
-#define mb() asm volatile ("mbar 2\n" : : : "memory");
+#define mb() asm volatile ("mbar 1\n" : : : "memory");
+#define ibarrier() asm volatile ("mbar 2\n" : : : "memory");
 
 #define local_cpu_ei() asm volatile ("msrset r0, 0x2");
 #define local_cpu_di() asm volatile ("msrclr r0, 0x2");
