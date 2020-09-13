@@ -10,9 +10,12 @@ SECTIONS
 		_stext = . ;
 		*(.text)
 		*(.text*)
+		. = ALIGN(8);
 		*(.rodata)
 		*(.rodata*)
+		. = ALIGN(8);
 		*(.fixup)
+		. = ALIGN(8);
 		*(.got)
 		. = ALIGN(4);
 		__initcalls_start = .;
@@ -22,7 +25,7 @@ SECTIONS
 		__testcalls_start = .;
 		KEEP(*(.testcall*))
 		__testcalls_end = .;
-		. = ALIGN(4);
+		. = ALIGN(8);
 		_etext = . ;
 	} >ddr
 
@@ -31,7 +34,7 @@ SECTIONS
 		_sdata = . ;
 		*(.data)
 		*(.data*)
-		. = ALIGN(4);
+		. = ALIGN(8);
 		_edata = . ;
 	} >ddr
 
@@ -40,7 +43,7 @@ SECTIONS
 		_sbss = . ;
 		*(.bss)
 		*(.bss*)
-		. = ALIGN(4);
+		. = ALIGN(8);
 		_ebss = . ;
 	} >ddr
 
