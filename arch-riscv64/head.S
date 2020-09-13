@@ -1,48 +1,74 @@
-# Used for validating QEMU.
-# This code is not guaranteed to work on real HW, needs careful testing
-# in case it gets reused.
-#
-# Written by Edgar E. Iglesias
-#
-	# Reset and exceptions/interrupt vectors
+/*
+ * TBM RV64 start-up code.
+ * Written by Edgar E. Iglesias
+ */
+
+#define MAGIC_DATA_VAL 0x1337
+
+	/* Reset and exceptions/interrupt vectors */
 	.global __reset_vector
 __reset_vector:
-1:
-	j	1b
+	j	__bare_start
 	.size __reset_vector, . - __reset_vector
 
 	.global	__bare_start
 	.balign 4
 __bare_start:
-1:
-	j 1b
-	# Setup stack to top of private RAM.
+	la sp, _stack
 
-	# Copy the .data template from ROM to RAM. The template is
-	# located at _etext. Copy it into _sdata. Lenght is (_edata - s_data)
-	#
-	# memcpy(_sdata, _etext, _edata - _sdata);
+	/*
+	 * See if data_val got initialized.
+	 * Assume this was a miss-loaded ELF (loaded but with wrong start-addr).
+	 * If _data_val is correctly initialized. Otherwise, we assume this
+	 * was loaded as a blob.
+	 */
+	la a0, _data_val
+	ld a1, (a0)
+	li a0, MAGIC_DATA_VAL
+	beq a0, a1, _start
+
+	/*
+	 * Copy the .data template from ROM to RAM. The template is
+	 * located at _etext. Copy it into _sdata. Lenght is (_edata - s_data)
+	 * memcpy(_sdata, _etext, _edata - _sdata);
+	 */
+	la a0, _sdata
+	la a1, _etext
+	la a2, _edata
+	sub a2, a2, a1
+	call memmove
+
+	la a0, _data_val
+	ld a1, (a0)
+	li a0, MAGIC_DATA_VAL
+1:
+	bne a0, a1, 1b
+
 	.size __bare_start, . - __bare_start
 
-	# ELF entry point.
+	/* ELF entry point.  */
 	.global	_start
 	.balign 4
 _start:
-	# Reinit the stack for ELF-loads.
+	/* Reinit the stack for ELF-loads.  */
 	la sp, _stack
 
-	# Zero the .bss area. memset(_sbss, 0, _ebss - _sbss)
+	/* Zero the .bss area. memset(_sbss, 0, _ebss - _sbss)  */
 	la a0, _sbss
-	la a1, 0
+	li a1, 0
 	la a2, _ebss
-	subw a2, a2, a0
+	sub a2, a2, a0
 	call memset
 
-	# Initialize malloc. 8K of RAM, starting at the end of .bss.
+	/* Initialize malloc. 8K of RAM, starting at the end of .bss. */
 
-	# Jump into C code.
-#1:
-#	j	1b
+	/* Jump into C code. */
 	call main
-
+1:
+	wfi
+	j 1b
 	.size _start, . - _start
+
+	.data
+_data_val:
+	.word	MAGIC_DATA_VAL
