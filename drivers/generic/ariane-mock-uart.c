@@ -13,6 +13,7 @@
 #ifdef ARIANE_MOCK_UART_BASE
 int uart_putchar(int c) {
 	writel(ARIANE_MOCK_UART_BASE + R_THR, c);
+	return c;
 }
 
 void uart_init(void) { }
