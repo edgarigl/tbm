@@ -30,7 +30,7 @@
 #define ULONG_LONG_MAX ULLONG_MAX
 #endif
 
-#ifdef __MICROBLAZE__
+#if defined(__MICROBLAZE__) || (defined(__riscv) && __riscv_xlen == 32)
 #define CHAR_BIT 8
 #define SCHAR_MIN (-128)
 #define SCHAR_MAX 127
