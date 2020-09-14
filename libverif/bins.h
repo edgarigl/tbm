@@ -23,7 +23,7 @@ bool bin_alldone(struct bin_state *bs);
 void bin_show_status(struct bin_state *bs, int show_all);
 
 /* This hack is useful for ctrl+c handling.  */
-struct bin_state *bs_global;
+extern struct bin_state *bs_global;
 static inline void bin_set_bs_global(struct bin_state *bs)
 {
 	bs_global = bs;
