@@ -23,7 +23,7 @@ __bare_start:
 	 * was loaded as a blob.
 	 */
 	la a0, _data_val
-	ld a1, (a0)
+	lw a1, (a0)
 	li a0, MAGIC_DATA_VAL
 	beq a0, a1, _start
 
@@ -38,8 +38,9 @@ __bare_start:
 	sub a2, a2, a1
 	call memmove
 
+	/* Check that data got loaded correctly. */
 	la a0, _data_val
-	ld a1, (a0)
+	lw a1, (a0)
 	li a0, MAGIC_DATA_VAL
 1:
 	bne a0, a1, 1b
