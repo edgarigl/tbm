@@ -82,6 +82,18 @@ qemu-system-riscv64 -M virt -m 256M -serial stdio -display none \
 ./work-ver/Variane_testharness ~/src/c/tbm/tbm/build/ariane_soc/ctest-bare
 ```
 
+## RISCv32
+
+### Build
+```
+make CFG=configs/picorv32.cfg
+```
+
+### RISCv32 on the Picorv32 test bench
+```
+./testbench_verilator +firmware=tbm/build/picorv32/ctest-bare.hex 
+```
+
 ## MicroBlaze
 To run the petalogix-s3adsp1800 tests, run the following:
 ```
