@@ -68,13 +68,14 @@ static bool check_scr_mask(void)
 
 bool a32_check_smc(void)
 {
-	bool has_el2;
+	bool has_el2 = false;
 	printf("%s:\n", __func__);
 
-	has_el2 = check_scr_mask();
-	if (has_el2) {
-		check_hcr_mask();
+	if (__ARM_ARCH == 8) {
+		has_el2 = check_scr_mask();
+		if (has_el2) {
+			check_hcr_mask();
+		}
 	}
-
 	return has_el2;
 }

@@ -82,7 +82,9 @@ static void check_vttbr(bool has_el2)
 void a32_check_regs(bool has_el2)
 {
 	printf("%s: has_el2=%d\n", __func__, has_el2);
-	check_vttbr(has_el2);
-	check_vpidr(has_el2);
-	check_vmpidr(has_el2);
+	if (__ARM_ARCH == 8) {
+		check_vttbr(has_el2);
+		check_vpidr(has_el2);
+		check_vmpidr(has_el2);
+	}
 }
