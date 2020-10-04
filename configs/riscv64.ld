@@ -44,6 +44,7 @@ SECTIONS
 		_sbss = . ;
 		*(.bss)
 		*(.bss*)
+		*(.sbss*)
 		. = ALIGN(8);
 		_ebss = . ;
 	} >ddr

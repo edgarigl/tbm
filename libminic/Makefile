@@ -31,6 +31,11 @@ SIZE	= $(CROSS)size
 CFLAGS  += $(CPUFLAG)
 CFLAGS  += -Wall -g -O2 -fomit-frame-pointer -ftest-coverage
 CFLAGS  += -Werror
+# Avoid having GCC identify loop patterns and emitting calls
+# to memset, memcpy and friends. If not, GCC inserts a call
+# to memset from within memset itself, causing endless
+# recursion.
+CFLAGS  += -fno-tree-loop-distribute-patterns
 CPPFLAGS += -isystem include -nostdinc
 
 S_OBJS   = malloc.o ctype.o sort.o vprintf.o assert.o rand.o

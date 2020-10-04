@@ -178,7 +178,7 @@ include Rules.mk
 
 .PHONY: libminic-rule
 libminic-rule:
-	$(MAKE) -C libminic BUILDDIR=../$(BUILDDIR)libminic/ CFLAGS="$(CFLAGS)" CPUFLAG="$(CPUFLAG)"
+	$(MAKE) -C libminic BUILDDIR=../$(BUILDDIR)libminic/ CFLAGS="$(CFLAGS) -fno-tree-loop-distribute-patterns" CPUFLAG="$(CPUFLAG)"
 
 BINSECTIONS = .text .data
 $(TARGETBIN): $(TARGET)
