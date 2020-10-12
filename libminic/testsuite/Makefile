@@ -1,5 +1,4 @@
-
-CFLAGS   += -Wall -W -O2 -g -D__cris__
+CFLAGS   += -Wall -W -O2 -g -DPROFILE_MALLOC=1
 CPPFLAGS += -I ../include
 
 TESTCASES  = check-malloc

@@ -95,17 +95,21 @@ unsigned int _alloc_ctx_init(struct alloc_ctx *ctx, void *addr, unsigned long si
 	ctx->mem = (unsigned long) addr;
 	ctx->mem_size = size;
 #if PROFILE_MALLOC
+	ctx->mem_max_alloc = 0;
+	ctx->mem_alloc = 0;
 	ctx->event_cb = 0;
 #endif
+	/* align to 64b boundary */
+	ctx->mem += 7;
+	ctx->mem &= ~7;
 
-	/* align to 32b boundary */
-	ctx->mem += 3;
-	ctx->mem &= ~3;
-
-	D(printf("alloc_init: %x: %d bytes\n", (unsigned) ctx->mem, (int) size));
+	D(printf("alloc_init: %lx: %d bytes\n", (unsigned long) ctx->mem, (int) size));
 
 	/* Mark the first entry as free.  */
 	memset((void *)ctx->mem, 0, sizeof (struct allocation));
+
+	/* To support aligned_alloc, we need a first allocation.  */
+	_malloc_ctx(ctx, 8);
 	return 0;
 }
 
@@ -127,20 +131,25 @@ void alloc_exit(void)
 	_alloc_ctx_exit(&_alloc_default_ctx);
 }
 
-void *_malloc_ctx(struct alloc_ctx *ctx, size_t size)
+void *_aligned_alloc_ctx(struct alloc_ctx *ctx, size_t alignment, size_t size)
 {
-	struct allocation *a = (void *) ctx->mem, *new = 0;
+	struct allocation *a, *new = NULL;
 	size_t gap = 0;
+	size_t align_offset;
 	void *p = NULL;
 
 
-	D(printf("malloc(%d) enter\n", (int) size));
+	D(printf("%s(%d, %d) enter\n", __func__, (int) alignment, (int) size));
 	FATALD(if (!size) printf("WARN: %s(%lu)\n", __func__,
 			(unsigned long)size));
 
-	/* Minimum allocation is 4 bytes.  */
-	size += 3;
-	size &= ~3;
+	/* Align allocation size to 8 bytes.  */
+	size += 7;
+	size &= ~7;
+	alignment += 7;
+	alignment &= ~7;
+
+	a = (void *) ctx->mem;
 
 	while (a) {
 		D(printf("a=%p a->next=%p\n", a, a->next));
@@ -152,12 +161,27 @@ void *_malloc_ctx(struct alloc_ctx *ctx, size_t size)
 			gap = ctx->mem + ctx->mem_size;
 			gap -= alloc_end(a);
 		}
+
+		align_offset = 0;
+		if (alignment) {
+			unsigned long x;
+
+			x = alloc_end(a);
+			x &= alignment - 1;
+			align_offset = alignment - x;
+			if (x == 0 || align_offset < sizeof *a) {
+				align_offset = alignment + align_offset - sizeof *a;
+			} else {
+				align_offset -= sizeof *a;
+			}
+		}
+
 		/* Is there more room?  */
-		if (gap >= (size + sizeof *a)) {
+		if (gap >= (size + sizeof *a + align_offset)) {
 			struct allocation *t;
 
 			/* Allocate here.  */
-			new = (void *) alloc_end(a);
+			new = (void *) alloc_end(a) + align_offset;
 
 			/* link into the list.  */
 			t = a->next;
@@ -190,6 +214,16 @@ void *_malloc_ctx(struct alloc_ctx *ctx, size_t size)
 	return p;
 }
 
+void *aligned_alloc(size_t alignment, size_t size)
+{
+	return _aligned_alloc_ctx(&_alloc_default_ctx, alignment, size);
+}
+
+void *_malloc_ctx(struct alloc_ctx *ctx, size_t size)
+{
+	return _aligned_alloc_ctx(ctx, 0, size);
+}
+
 void *malloc(size_t size)
 {
 	return _malloc_ctx(&_alloc_default_ctx, size);
@@ -197,21 +231,24 @@ void *malloc(size_t size)
 
 void _free_ctx(struct alloc_ctx *ctx, void *ptr)
 {
-	struct allocation *f, *a = (void *) ctx->mem, *prev = NULL;
+	struct allocation *f, *a, *prev = NULL;
 
 	D(printf("%s(%p) mem=%p\n", __func__, ptr, (void*) ctx->mem));
 	if (ptr == NULL)
 		return;
 
 	f = alloc_from_data(ptr);
+
+	a = (void *) ctx->mem;
 	while (a) {
-		D(printf("a=%p a->size=%d a->next=%p\n",
-		         a, (int) a->size, a->next));
+		D(printf("a=%p a->size=%d a->next=%p f=%p\n",
+		         a, (int) a->size, a->next, f));
 		if (a == f) {
 			/* Unlink and set to zero if first.  */
 #if PROFILE_MALLOC
 			ctx->mem_alloc -= f->size;
 #endif
+			alloc_event(ctx, ALLOC_EV_FREE, ptr, f->size);
 			if (prev) {
 				prev->next = a->next;
 				D(printf("free OK prev->next=%p\n",

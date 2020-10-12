@@ -35,10 +35,12 @@ either expressed or implied, of the FreeBSD Project.
 #define alloc_init dut_alloc_init
 #define alloc_exit dut_alloc_exit
 #define _alloc_set_event_cb dut_alloc_set_event_cb
+#define aligned_alloc dut_aligned_alloc
 #define malloc dut_malloc
 #define free dut_free
 #define calloc dut_calloc
 #include "../malloc.c"
+#undef aligned_alloc
 #undef malloc
 #undef free
 #undef calloc
@@ -57,46 +59,84 @@ do                                                             \
 #endif
 
 unsigned int pre_guard;
-unsigned int heap[4096];
+unsigned int heap[4 * 1024 * 1024 / sizeof(int)];
 unsigned int post_guard;
+
+static void check_aligned_alloc(void)
+{
+	int i, sizep2;
+	unsigned int level;
+
+	printf("%s\n", __func__);
+	dut_alloc_init(heap, sizeof heap);
+	level = _alloc_default_ctx.mem_alloc;
+
+	for (sizep2 = 2; sizep2 < 19; sizep2++) {
+		for (i = 0; i < 100; i++) {
+			unsigned int size = 1U << sizep2;
+			void *p[3];
+			unsigned long pi;
+			unsigned int a;
+
+			for (a = 0; a < (sizeof p / sizeof p[0]); a++) {
+				p[a] = dut_aligned_alloc(size, size);
+				assert(p[a]);
+				pi = (unsigned long) p[a];
+				assert((pi & (size - 1)) == 0);
+			}
+
+			for (a = 0; a < (sizeof p / sizeof p[0]); a++) {
+				dut_free(p[a]);
+			}
+			assert(_alloc_default_ctx.mem_alloc == level);
+		}
+		putchar('.');
+	}
+	dut_alloc_exit();
+	assert(_alloc_default_ctx.mem_alloc == 0);
+	printf("%s OK\n", __func__);
+}
 
 static void check_small_alloc(void)
 {
         int i, size;
-        unsigned int level = alloc_default_ctx.mem_alloc;
+        unsigned int level;
 
 	printf("%s\n", __func__);
 	dut_alloc_init(heap, sizeof heap);
+	level = _alloc_default_ctx.mem_alloc;
 
         for (size = 1; size < 32; size++) {
                 for (i = 0; i < 100; i++) {
                         void *p = dut_malloc(4);
                         assert(p);
                         dut_free(p);
-                        assert(alloc_default_ctx.mem_alloc == level);
+                        assert(_alloc_default_ctx.mem_alloc == level);
                 }
 		putchar('.');
         }
 	dut_alloc_exit();
-	assert(alloc_default_ctx.mem_alloc == 0);
+	assert(_alloc_default_ctx.mem_alloc == 0);
 	printf("%s OK\n", __func__);
 }
 
 static void check_malloc_zero(void)
 {
 	void *p;
+        unsigned int level;
 
 	printf("%s\n", __func__);
 	dut_alloc_init(heap, sizeof heap);
+	level = _alloc_default_ctx.mem_alloc;
 
 	p = dut_malloc(0);
 	assert(p);
-	assert(alloc_default_ctx.mem_alloc > 0);
+	assert(_alloc_default_ctx.mem_alloc > level);
 	dut_free(p);
-	assert(alloc_default_ctx.mem_alloc == 0);
+	assert(_alloc_default_ctx.mem_alloc == level);
 
 	dut_alloc_exit();
-	assert(alloc_default_ctx.mem_alloc == 0);
+	assert(_alloc_default_ctx.mem_alloc == 0);
 	printf("%s OK\n", __func__);
 }
 
@@ -108,7 +148,7 @@ static void check_calloc(void)
 	printf("%s\n", __func__);
 	dut_alloc_init(heap, sizeof heap);
 
-	for (i = 16380; i < (sizeof heap - 16); i++) {
+	for (i = 16; i < (sizeof heap - 16) && i < 16 * 1024; i++) {
 		p = dut_calloc(1, i);
 		if (!p)
 			break;
@@ -118,15 +158,16 @@ static void check_calloc(void)
 	}
 
 	dut_alloc_exit();
-	assert(alloc_default_ctx.mem_alloc == 0);
+	assert(_alloc_default_ctx.mem_alloc == 0);
 	printf("%s OK\n", __func__);
 }
 
 static void check_torture(unsigned int modulo)
 {
-	unsigned int seed;
+	unsigned int seed = 0;
 	unsigned long int i;
 	unsigned int len, pos = 0;
+	unsigned int aligned;
 	void *p_fifo[16] = {0};
 
 	printf("%s seed=%x mod=%d\n", __func__, seed, modulo);
@@ -134,9 +175,16 @@ static void check_torture(unsigned int modulo)
 
 	for (i = 0; i < (64000 * TORTURE_ORDER); i++) {
 		len = rand_r(&seed) % modulo;
+		aligned = rand_r(&seed) % 19;
+		if (aligned < 3) {
+			aligned = 0;
+		} else {
+			aligned = 1U << aligned;
+		}
 
-		p_fifo[pos] = dut_malloc(len);
-		D(printf("p[%d] = malloc(%d) = %p\n", pos, len, p_fifo[pos]));
+		p_fifo[pos] = dut_aligned_alloc(aligned, len);
+		D(printf("p[%d] = alloc_aligned(%d, %d) = %p\n",
+				pos, aligned, len, p_fifo[pos]));
 		if ((i % (128 * TORTURE_ORDER)) == 0)
 			fputc(p_fifo[pos] ? '+' : '.', stderr);
 
@@ -169,7 +217,7 @@ static void check_torture(unsigned int modulo)
 
 	printf("\n");
 	dut_alloc_exit();
-	assert(alloc_default_ctx.mem_alloc == 0);
+	assert(_alloc_default_ctx.mem_alloc == 0);
 	printf("%s OK\n", __func__);
 }
 
@@ -198,13 +246,17 @@ static void ev_handler(int type, void *p, size_t a)
 static void check_events(void)
 {
 	void *p, *p2;
+	unsigned int level;
 
 	printf("%s\n", __func__);
-	dut_alloc_set_event_cb(ev_handler);
 	dut_alloc_init(heap, sizeof heap);
+	dut_alloc_set_event_cb(ev_handler);
+
+	level = _alloc_default_ctx.mem_alloc;
 
 	ev_handler(-1, 0, ~0);
 	p = dut_malloc(1024);
+	printf("level=%d latest_a=%ld\n", level, latest_a);
 	ASSERT_EV(ALLOC_EV_ALLOC_LEVEL, p);
 	assert(latest_a >= 1024);
 
@@ -215,9 +267,9 @@ static void check_events(void)
 	ev_handler(-1, NULL, ~0);
 	dut_free(p2);
 	/* No event.  */
-	ASSERT_EV(-1, NULL);
+	ASSERT_EV(ALLOC_EV_FREE, p2);
 	dut_free(p);
-	ASSERT_EV(-1, NULL);
+	ASSERT_EV(ALLOC_EV_FREE, p);
 
 	/* Alloc an amount that can't be statisfied.  */
 	p = dut_malloc(sizeof heap + 1);
@@ -246,6 +298,8 @@ int main(void)
 {
 	unsigned int i;
 
+	check_small_alloc();
+	check_aligned_alloc();
 	check_events();
 	check_small_alloc();
 	check_malloc_zero();

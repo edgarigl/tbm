@@ -11,6 +11,7 @@ int on_exit(void (*function)(int , void *), void *arg);
 
 void *calloc(size_t nmemb, size_t size);
 void *malloc(size_t size);
+void *aligned_alloc(size_t alignment, size_t size);
 void free(void *ptr);
 
 #define RAND_MAX (INT_MAX)
