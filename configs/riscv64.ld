@@ -11,17 +11,15 @@ SECTIONS
 		. = ALIGN(8);
 		*(.rodata)
 		*(.rodata*)
+		*(.srodata)
+		*(.srodata*)
 		. = ALIGN(8);
 		*(.fixup)
 		. = ALIGN(8);
 		*(.got)
 		. = ALIGN(4);
-		__initcalls_start = .;
-		KEEP(*(.initcall*))
-		__initcalls_end = .;
-		. = ALIGN(4);
 		__testcalls_start = .;
-		KEEP(*(.testcall*))
+		KEEP(*(.*testcall*))
 		__testcalls_end = .;
 		. = ALIGN(8);
 		_etext = . ;
@@ -50,10 +48,12 @@ SECTIONS
 	} >ddr
 
 	/* heap.  */
+	. = ALIGN(8);
 	_heap_start = .;
 	. = . + 0x8000;
 	_heap_end = .;
 
+	. = ALIGN(8);
 	. = . + 0x2000;
 	_stack = .;
 
