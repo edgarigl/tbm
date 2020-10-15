@@ -62,6 +62,11 @@ _start:
 	call memset
 
 	/* Initialize malloc. 8K of RAM, starting at the end of .bss. */
+	la a0, _heap_start
+	la a1, _heap_end
+	sub a1, a1, a0
+	call alloc_init
+	call __initcalls_exec
 
 	/* Jump into C code. */
 	call main
