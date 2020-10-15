@@ -185,12 +185,7 @@ $(TARGETBIN): $(TARGET)
 	@# The binary image needs to get a template of .data
 	@# appended to its text section. At boot, the rom code will
 	@# copy the .data template into its final link address (_sdata)
-	rm -f $@
-	touch $@
-	for sct in $(BINSECTIONS); do \
-		$(OBJCOPY) -O binary -j$${sct} $< $@.tmp && cat $@.tmp >> $@; \
-	done
-	@$(RM) $@.tmp
+	$(OBJCOPY) -O binary -j .text -j .data $< $@
 
 $(TARGET_SYMS_LD): $(TARGET)
 	./scripts/syms_elf2ldscript.sh $< syms__ >$@
