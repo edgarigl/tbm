@@ -45,6 +45,11 @@ int uart_putchar(int c)
 	} while (status & UART_SR_INTR_TFUL);
 
 	writel(base + R_UART_TX, c);
+
+	/* Drain the Queue (keeps events synchronized).  */
+	do {
+		status = readl(base + R_UART_SR);
+	} while (!(status & UART_SR_INTR_TEMPTY));
 	return c;
 }
 
