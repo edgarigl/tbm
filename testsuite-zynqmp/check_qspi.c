@@ -29,7 +29,7 @@
 #include "drivers/zynqmp/qspi.h"
 #include "reg-qspi.h"
 
-#define ENABLE_LOGS 0
+#define ENABLE_LOGS 1
 
 #if ENABLE_LOGS
 
