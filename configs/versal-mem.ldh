@@ -1,0 +1,12 @@
+MEMORY { pmc_rom (RX) : ORIGIN = 0xf0000000, LENGTH = 128k }
+MEMORY { pmc_ppu0_ram (RWX) : ORIGIN = 0xf0060000, LENGTH = 8k }
+MEMORY { pmc_ppu1_ram_insn (RX) : ORIGIN = 0xf0200000, LENGTH = 128k }
+MEMORY { pmc_ppu1_ram_data (RWX) : ORIGIN = 0xf0240000, LENGTH = 128k }
+MEMORY { pmc_ram (RWX) : ORIGIN = 0xf2000000, LENGTH = 128k }
+MEMORY { psm_ram_instr (RWX) : ORIGIN = 0xffc00000, LENGTH = 128k }
+MEMORY { psm_ram_data (RW) : ORIGIN = 0xffc20000, LENGTH = 128k }
+MEMORY { ddrmc_ram_instr (RWX) : ORIGIN = 0x20000, LENGTH = 128k }
+MEMORY { ddrmc_ram_data (RW) : ORIGIN = 0x1c000, LENGTH = 16k }
+MEMORY { ddrmc_ram_echange (RW) : ORIGIN = 0x08000, LENGTH = 32k }
+MEMORY { ocm (RX) : ORIGIN = 0xFFFC0000, LENGTH = 0x40000 }
+MEMORY { ddr (RX) : ORIGIN = 0x0, LENGTH = 0x20000000 }

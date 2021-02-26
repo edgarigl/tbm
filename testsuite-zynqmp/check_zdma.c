@@ -16,13 +16,10 @@
 
 #include "sys.h"
 #include "plat.h"
-#include "reg-adma.h"
-#include "reg-gdma.h"
+#include "drivers/zynqmp/zdma.h"
 
-#include "zdma.h"
-
-#define D(x)
-#define DEBUG_LINEAR2_PAUSE 0
+#undef D
+#define D(x) x
 
 /* a local allocation context to get hold of buffers in DDR.
    BSS and DATA might be on CSU priv memories.  */
@@ -36,6 +33,7 @@ static void check_zdma_linked(phys_addr_t base, unsigned int ch)
 	struct zdma_descr *dsc_src, *dsc_dst;
 	char *dsc_src_m, *dsc_dst_m;
 	unsigned int size = 100;
+	uint32_t total_trans;
 
 	D(printf("%s: base=%lx ch=%d\n", __func__, base, ch));
 	/* We allocate 8 descriptors, but only use three, 0, 1 and 7.  */
@@ -57,6 +55,8 @@ static void check_zdma_linked(phys_addr_t base, unsigned int ch)
 	zdma_descr_init(&dsc_dst[7], dst + size - 1, 1,
 			ZDMA_ATTR_CMD_STOP, false, false, false);
 
+	total_trans = readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE);
+
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_SRC_START_LSB, (uintptr_t) dsc_src);
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_DST_START_LSB, (uintptr_t) dsc_dst);
 
@@ -68,6 +68,10 @@ static void check_zdma_linked(phys_addr_t base, unsigned int ch)
 
 	if (memcmp(src, dst, size)) {
 		err();
+	}
+
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != (total_trans + size)) {
+//		err();
 	}
 
 	_free_ctx(ddr_area, dsc_src_m);
@@ -84,6 +88,7 @@ static void check_zdma_linear2_pause3(phys_addr_t base, unsigned int ch)
 	struct zdma_descr *dsc_src, *dsc_dst;
 	char *dsc_src_m, *dsc_dst_m;
 	unsigned int size = 100;
+	uint32_t total_trans;
 
 	D(printf("%s: base=%lx ch=%d\n", __func__, base, ch));
 	dsc_src = zdma_descr_alloc(ddr_area, 4, &dsc_src_m);
@@ -105,6 +110,8 @@ static void check_zdma_linear2_pause3(phys_addr_t base, unsigned int ch)
 	zdma_descr_init(&dsc_dst[0], dst, size - 1, 0, false, false, false);
 	zdma_descr_init(&dsc_dst[3], dst + size - 1, 1,
 			ZDMA_ATTR_CMD_STOP, false, false, false);
+
+	total_trans = readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE);
 
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_SRC_START_LSB, (uintptr_t) dsc_src);
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_DST_START_LSB, (uintptr_t) dsc_dst);
@@ -136,6 +143,10 @@ static void check_zdma_linear2_pause3(phys_addr_t base, unsigned int ch)
 		err();
 	}
 
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != (total_trans + size - 1)) {
+//		err();
+	}
+
 	_free_ctx(ddr_area, dsc_src_m);
 	_free_ctx(ddr_area, dsc_dst_m);
 	_free_ctx(ddr_area, src);
@@ -150,6 +161,7 @@ static void check_zdma_linear2_pause2(phys_addr_t base, unsigned int ch)
 	struct zdma_descr *dsc_src, *dsc_dst;
 	char *dsc_src_m, *dsc_dst_m;
 	unsigned int size = 100;
+	uint32_t total_trans;
 
 	D(printf("%s: base=%lx ch=%d\n", __func__, base, ch));
 	dsc_src = zdma_descr_alloc(ddr_area, 4, &dsc_src_m);
@@ -171,6 +183,8 @@ static void check_zdma_linear2_pause2(phys_addr_t base, unsigned int ch)
 	zdma_descr_init(&dsc_dst[0], dst, size - 1, 0, false, false, false);
 	zdma_descr_init(&dsc_dst[3], dst + size - 1, 1,
 			ZDMA_ATTR_CMD_STOP, false, false, false);
+
+	total_trans = readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE);
 
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_SRC_START_LSB, (uintptr_t) dsc_src);
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_DST_START_LSB, (uintptr_t) dsc_dst);
@@ -197,6 +211,10 @@ static void check_zdma_linear2_pause2(phys_addr_t base, unsigned int ch)
 		err();
 	}
 
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != (total_trans + size)) {
+//		err();
+	}
+
 	_free_ctx(ddr_area, dsc_src_m);
 	_free_ctx(ddr_area, dsc_dst_m);
 	_free_ctx(ddr_area, src);
@@ -211,6 +229,7 @@ static void check_zdma_linear2_pause(phys_addr_t base, unsigned int ch)
 	struct zdma_descr *dsc_src, *dsc_dst;
 	char *dsc_src_m, *dsc_dst_m;
 	unsigned int size = 256;
+	uint32_t total_trans;
 	int diff, diff2;
 
 	D(printf("%s: base=%lx ch=%d\n", __func__, base, ch));
@@ -234,6 +253,8 @@ static void check_zdma_linear2_pause(phys_addr_t base, unsigned int ch)
 	mb();
 	plat_cache_flush();
 
+	total_trans = readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE);
+
 	zdma_wait_for(base, ch, ZDMA_STATE_DISABLED);
 
 	writel(ch_base + ZDMA_ZDMA_CH_DATA_ATTR,
@@ -256,7 +277,7 @@ static void check_zdma_linear2_pause(phys_addr_t base, unsigned int ch)
 	diff = memcmp(src, dst, size - 1);
 	if (diff) {
 		udelay(1);
-#if DEBUG_LINEAR2_PAUSE
+#if 0
 		hexdump("src", src, size - 1);
 		hexdump("dst", dst, size - 1);
 #endif
@@ -287,6 +308,10 @@ static void check_zdma_linear2_pause(phys_addr_t base, unsigned int ch)
 		err();
 	}
 
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != (total_trans + size)) {
+//		err();
+	}
+
 	_free_ctx(ddr_area, dsc_src_m);
 	_free_ctx(ddr_area, dsc_dst_m);
 	_free_ctx(ddr_area, src);
@@ -299,6 +324,7 @@ static void check_zdma_linear_irq(phys_addr_t base, unsigned int ch)
 	unsigned char *src, *dst;
 	struct zdma_descr *dsc_src, *dsc_dst;
 	char *dsc_src_m, *dsc_dst_m;
+	uint32_t total_trans;
 	unsigned int i;
 	static const unsigned int nr_desc = 100;
 	unsigned int size = nr_desc;
@@ -325,6 +351,7 @@ static void check_zdma_linear_irq(phys_addr_t base, unsigned int ch)
 	zdma_descr_init(&dsc_dst[i], dst + i, 1,
 			ZDMA_ATTR_CMD_STOP, true, false, false);
 
+	total_trans = readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE);
 	src_count = readl(ch_base + ZDMA_ZDMA_CH_IRQ_SRC_ACCT);
 	dst_count = readl(ch_base + ZDMA_ZDMA_CH_IRQ_DST_ACCT);
 
@@ -346,6 +373,10 @@ static void check_zdma_linear_irq(phys_addr_t base, unsigned int ch)
 		err();
 	}
 
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != (total_trans + size)) {
+//		err();
+	}
+
 	_free_ctx(ddr_area, dsc_src_m);
 	_free_ctx(ddr_area, dsc_dst_m);
 	_free_ctx(ddr_area, src);
@@ -359,6 +390,7 @@ static void check_zdma_linear2_asym(phys_addr_t base, unsigned int ch)
 	struct zdma_descr *dsc_src, *dsc_dst;
 	char *dsc_src_m, *dsc_dst_m;
 	unsigned int size = 128;
+	uint32_t total_trans;
 
 	D(printf("%s: base=%lx ch=%d\n", __func__, base, ch));
 	dsc_src = zdma_descr_alloc(ddr_area, 3, &dsc_src_m);
@@ -381,6 +413,8 @@ static void check_zdma_linear2_asym(phys_addr_t base, unsigned int ch)
 	zdma_descr_init(&dsc_dst[4], dst + size - 8, 4, 0, false, false, false);
 	zdma_descr_init(&dsc_dst[5], dst + size - 4, 4,
 			ZDMA_ATTR_CMD_STOP, false, false, false);
+
+	total_trans = readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE);
 
 	writel(ch_base + ZDMA_ZDMA_CH_DATA_ATTR,
 		0x1 << ZDMA_ZDMA_CH_DATA_ATTR_ARBURST_SHIFT
@@ -407,6 +441,10 @@ static void check_zdma_linear2_asym(phys_addr_t base, unsigned int ch)
 		err();
 	}
 
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != (total_trans + size)) {
+//		err();
+	}
+
 	_free_ctx(ddr_area, dsc_src_m);
 	_free_ctx(ddr_area, dsc_dst_m);
 	_free_ctx(ddr_area, src);
@@ -420,6 +458,7 @@ static void check_zdma_linear2(phys_addr_t base, unsigned int ch)
 	struct zdma_descr *dsc_src, *dsc_dst;
 	char *dsc_src_m, *dsc_dst_m;
 	unsigned int size = 100;
+	uint32_t total_trans;
 
 	D(printf("%s: base=%lx ch=%d\n", __func__, base, ch));
 	dsc_src = zdma_descr_alloc(ddr_area, 2, &dsc_src_m);
@@ -438,6 +477,8 @@ static void check_zdma_linear2(phys_addr_t base, unsigned int ch)
 	zdma_descr_init(&dsc_dst[1], dst + size - 1, 1,
 			ZDMA_ATTR_CMD_STOP, false, false, false);
 
+	total_trans = readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE);
+
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_SRC_START_LSB, (uintptr_t) dsc_src);
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_DST_START_LSB, (uintptr_t) dsc_dst);
 
@@ -448,6 +489,10 @@ static void check_zdma_linear2(phys_addr_t base, unsigned int ch)
 
 	if (memcmp(src, dst, size)) {
 		err();
+	}
+
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != (total_trans + size)) {
+//		err();
 	}
 
 	_free_ctx(ddr_area, dsc_src_m);
@@ -463,6 +508,7 @@ static void check_zdma_linear(phys_addr_t base, unsigned int ch)
 	struct zdma_descr *dsc_src, *dsc_dst;
 	char *dsc_src_m, *dsc_dst_m;
 	unsigned int size = 100;
+	uint32_t total_trans;
 
 	D(printf("%s: base=%lx ch=%d\n", __func__, base, ch));
 	dsc_src = zdma_descr_alloc(ddr_area, 1, &dsc_src_m);
@@ -477,6 +523,7 @@ static void check_zdma_linear(phys_addr_t base, unsigned int ch)
 			false, false, false);
 	zdma_descr_init(dsc_dst, dst, size, ZDMA_ATTR_CMD_STOP,
 			false, false, false);
+	total_trans = readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE);
 
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_SRC_START_LSB, (uintptr_t) dsc_src);
 	zdma_write64(ch_base + ZDMA_ZDMA_CH_DST_START_LSB, (uintptr_t) dsc_dst);
@@ -489,6 +536,10 @@ static void check_zdma_linear(phys_addr_t base, unsigned int ch)
 
 	if (memcmp(src, dst, size)) {
 		err();
+	}
+
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != (total_trans + size)) {
+//		err();
 	}
 
 	_free_ctx(ddr_area, dsc_src_m);
@@ -536,6 +587,10 @@ static void check_zdma_simple_burst_rfixed(phys_addr_t base, unsigned int ch,
 			hexdump("dst", dst, size);
 			err();
 		}
+	}
+
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != size) {
+//		err();
 	}
 
 	_free_ctx(ddr_area, src);
@@ -592,6 +647,10 @@ static void check_zdma_simple_burst_wo_wfixed(phys_addr_t base, unsigned int ch,
 		}
 	}
 
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != size) {
+//		err();
+	}
+
 	writel(ch_base + ZDMA_ZDMA_CH_DATA_ATTR,
 		AXI_BURST_INCR << ZDMA_ZDMA_CH_DATA_ATTR_ARBURST_SHIFT
 		| AXI_BURST_INCR << ZDMA_ZDMA_CH_DATA_ATTR_AWBURST_SHIFT
@@ -639,6 +698,10 @@ static void check_zdma_wo_bad_src(phys_addr_t base, unsigned int ch)
 		}
 	}
 
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != size) {
+//		err();
+	}
+
 	_free_ctx(ddr_area, src);
 	_free_ctx(ddr_area, dst);
 }
@@ -681,6 +744,10 @@ static void check_zdma_simple_wo(phys_addr_t base, unsigned int ch)
 		}
 	}
 
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != size) {
+//		err();
+	}
+
 	_free_ctx(ddr_area, src);
 	_free_ctx(ddr_area, dst);
 }
@@ -718,6 +785,10 @@ static void check_zdma_simple_ro(phys_addr_t base, unsigned int ch)
 		}
 	}
 
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != size) {
+//		err();
+	}
+
 	_free_ctx(ddr_area, src);
 	_free_ctx(ddr_area, dst);
 }
@@ -750,6 +821,10 @@ static void check_zdma_simple(phys_addr_t base, unsigned int ch)
 
 	if (memcmp(src, dst, size)) {
 		err();
+	}
+
+	if (readl(ch_base + ZDMA_ZDMA_CH_TOTAL_BYTE) != size) {
+//		err();
 	}
 
 	_free_ctx(ddr_area, src);
@@ -794,6 +869,10 @@ static void check_zdma_reset(phys_addr_t base, unsigned int ch)
 	assert(r == 0);
 }
 
+#ifdef __versal__
+#include "drivers/versal/versal-lpd-memmap.dtsh"
+#endif
+
 void check_zdma(void)
 {
 	int i, ch;
@@ -803,10 +882,21 @@ void check_zdma(void)
 		unsigned int channels;
 		unsigned int bwidth;
 	} dma_units[] = {
+#ifdef __versal__
+		{ "ADMA", (phys_addr_t) MM_ADMA_CH0, 8, 16 },
+#else
 		{ "ADMA", (phys_addr_t) ADMA_BASEADDR, 8, 8 },
 		{ "GDMA", (phys_addr_t) GDMA_BASEADDR, 8, 16 },
+#endif
 	};
+	bool is_qemu = true;
+#ifndef __versal__
 	struct ronaldo_version v = ronaldo_version();
+
+	if (v.platform != RDO_QEMU) {
+		is_qemu = false;
+	}
+#endif
 
 	if (!plat_mem.ddr) {
 		printf("%s: Cannot run zDMA tests without DDR memory\n", __func__);
@@ -826,13 +916,15 @@ void check_zdma(void)
 			check_zdma_simple_ro(dma_units[i].base, ch);
 			check_zdma_simple_wo(dma_units[i].base, ch);
 			check_zdma_wo_bad_src(dma_units[i].base, ch);
-			if (v.platform == RDO_QEMU) {
+			if (is_qemu) {
 				/* Real HW does not support fixed burst on RAM?  */
-				/* FIXME: Investigate why these don't work on real HW!  */
 				check_zdma_simple_burst_rfixed(dma_units[i].base, ch,
 								dma_units[i].bwidth);
 				check_zdma_simple_burst_wo_wfixed(dma_units[i].base, ch,
 								dma_units[i].bwidth);
+			}
+			if (is_qemu) {
+				/* FIXME: Investigate why these don't work on real HW!  */
 				check_zdma_linear(dma_units[i].base, ch);
 				check_zdma_linear_irq(dma_units[i].base, ch);
 				check_zdma_linear2(dma_units[i].base, ch);

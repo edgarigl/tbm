@@ -37,6 +37,13 @@ AARCH64_CROSS=aarch64-linux-gnu-
 
 The final binaries can be found in the build/* dir.
 
+## Versal
+
+### APU
+```
+qemu-system-aarch64 -M xlnx-versal-virt -serial stdio -display none -kernel build/versal/apu/ctest-bare
+```
+
 ## ZynqMP
 
 ### APU

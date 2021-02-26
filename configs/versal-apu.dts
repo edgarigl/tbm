@@ -1,0 +1,208 @@
+/dts-v1/;
+
+/ {
+	compatible = "xlnx,everest-virt", "xlnx,everest";
+	#address-cells = <0x2>;
+	#size-cells = <0x2>;
+	model = "Everest Virt Board";
+
+	cpus {
+		#address-cells = <0x1>;
+		#size-cells = <0x0>;
+
+		cpu@0 {
+			compatible = "arm,cortex-a72", "arm,armv8";
+			device_type = "cpu";
+			enable-method = "psci";
+			reg = <0x0>;
+		};
+		cpu@1 {
+			compatible = "arm,cortex-a72", "arm,armv8";
+			device_type = "cpu";
+			enable-method = "psci";
+			reg = <0x0>;
+		};
+	};
+
+
+	psci {
+		compatible = "arm,psci-1.0";
+		method = "smc";
+	};
+
+	timer {
+		compatible = "arm,armv8-timer";
+		interrupt-parent = <0x1>;
+		interrupts = <0x1 0xd 0xf04 0x1 0xe 0xf04 0x1 0xb 0xf04 0x1 0xa 0xf04>;
+	};
+
+	amba_apu {
+		compatible = "simple-bus";
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		ranges;
+
+		gic: interrupt-controller@f9010000 {
+			compatible = "arm,gic-400", "arm,cortex-a15-gic";
+			#interrupt-cells = <0x3>;
+			reg = <0x0 0xf9010000 0x0 0x10000 0x0 0xf902f000 0x0 0x2000 0x0 0xf9040000 0x0 0x20000 0x0 0xf906f000 0x0 0x2000>;
+			interrupt-controller;
+			interrupt-parent = <0x1>;
+			interrupts = <0x1 0x9 0xf04>;
+			linux,phandle = <0x1>;
+			phandle = <0x1>;
+		};
+	};
+
+	amba {
+		compatible = "simple-bus";
+		#address-cells = <0x2>;
+		#size-cells = <0x2>;
+		ranges;
+
+		ethernet@ff0c0000 {
+			compatible = "cdns,zynqmp-gem";
+			status = "okay";
+			interrupt-parent = <0x1>;
+			interrupts = <0x0 0x39 0x4 0x0 0x39 0x4>;
+			reg = <0x0 0xff0c0000 0x0 0x1000>;
+			clock-names = "pclk", "hclk", "tx_clk";
+			#address-cells = <0x1>;
+			#size-cells = <0x0>;
+			#stream-id-cells = <0x1>;
+			clocks = <0xa 0xa 0xa>;
+			linux,phandle = <0x1a>;
+			phandle = <0x1a>;
+
+			phy-mode = "rgmii-id";
+			xlnx,ptp-enet-clock = <0x0>;
+			local-mac-address = [00 0a 35 00 02 90];
+			phy-handle = <&phy0>;
+/*
+			xen,passthrough = <1>;
+*/
+
+			phy0: phy@c {
+				reg = <0>;
+				max-speed = <100>;
+			};
+		};
+
+		serial@ff000000 {
+			compatible = "arm,pl011", "arm,sbsa-uart";
+			status = "okay";
+			interrupt-parent = <0x1>;
+			interrupts = <0x0 0x15 0x4>;
+			reg = <0x0 0xff000000 0x0 0x1000>;
+			clock-names = "uart_clk", "apb_clk";
+			clocks = <0x3 0x3>;
+			current-speed = <115200>;
+		};
+
+		serial@ff010000 {
+			compatible = "arm,pl011", "arm,sbsa-uart";
+			status = "okay";
+			interrupt-parent = <0x1>;
+			interrupts = <0x0 0x16 0x4>;
+			reg = <0x0 0xff010000 0x0 0x1000>;
+			clock-names = "uart_clk", "apb_clk";
+			clocks = <0x3 0x3>;
+			current-speed = <115200>;
+		};
+
+		clk100 {
+			compatible = "fixed-clock";
+			#clock-cells = <0x0>;
+			clock-frequency = <0x5f5e100>;
+			linux,phandle = <0x3>;
+			phandle = <0x3>;
+		};
+
+		clk125 {
+			compatible = "fixed-clock";
+			#clock-cells = <0x0>;
+			clock-frequency = <0x7735940>;
+			linux,phandle = <0xa>;
+			phandle = <0xa>;
+		};
+
+		clk200 {
+			compatible = "fixed-clock";
+			#clock-cells = <0x0>;
+			clock-frequency = <0xbebc200>;
+			linux,phandle = <0x18>;
+			phandle = <0x18>;
+		};
+
+		clk250 {
+			compatible = "fixed-clock";
+			#clock-cells = <0x0>;
+			clock-frequency = <0xee6b280>;
+			linux,phandle = <0x16>;
+			phandle = <0x16>;
+		};
+
+		clk300 {
+			compatible = "fixed-clock";
+			#clock-cells = <0x0>;
+			clock-frequency = <0x11e1a300>;
+			linux,phandle = <0x14>;
+			phandle = <0x14>;
+		};
+
+		clk600 {
+			compatible = "fixed-clock";
+			#clock-cells = <0x0>;
+			clock-frequency = <0x23c34600>;
+			linux,phandle = <0x6>;
+			phandle = <0x6>;
+		};
+
+		clock0 {
+			compatible = "fixed-clock";
+			#clock-cells = <0x0>;
+			clock-frequency = <0x5f5e100>;
+			clock-accuracy = <0x64>;
+			linux,phandle = <0x2c>;
+			phandle = <0x2c>;
+		};
+
+		clock1 {
+			compatible = "fixed-clock";
+			#clock-cells = <0x0>;
+			clock-frequency = <0x1770000>;
+			clock-accuracy = <0x64>;
+			linux,phandle = <0x2d>;
+			phandle = <0x2d>;
+		};
+
+		ocm {
+			compatible = "mmio-sram";
+			reg = <0x0 0xfffc0000 0x0 0x40000>;
+		};
+	};
+
+	aliases {
+		serial0 = "/amba/serial@ff000000";
+		ethernet0 = "/amba/ethernet@ff0c0000";
+	};
+
+	chosen {
+		bootargs = "rdinit=/bin/sh console=ttyAMA0 earlycon=pl011,mmio,0xFF000000,115200n8";
+		stdout-path = "serial0:115200ns";
+		#address-cells = <0x2>;
+		#size-cells = <0x1>;
+		xen,xen-bootargs = "console=dtuart dtuart=serial0 dom0_mem=640M bootscrub=0 timer_slop=0";
+		xen,dom0-bootargs = "rdinit=/bin/sh console=hvc0 earlycon=xen earlyprintk=xen";
+
+		dom0 {
+			compatible = "xen,linux-zimage", "xen,multiboot-module";
+			reg = <0x0 0x80000 0x7000000>;
+		};
+	};
+
+	memory {
+		device_type = "memory";
+		reg = <0x0 0x0 0x0 0x70000000>;
+	};
+};
