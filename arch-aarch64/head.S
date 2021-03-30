@@ -143,6 +143,30 @@ _secondary_entry_head:
 	bl	secondary_entry
 	.size _secondary_entry_head, . - _secondary_entry_head
 
+	.balign 32
+	.global _secondary_entry_el1
+_secondary_entry_el1:
+	ldr	x0, =dummy_stack_top
+	mrs     x2, mpidr_el1
+	and	x2, x2, #0x3
+	add	x2, x2, #1
+	lsl	x2, x2, #10
+#	add	x0, x0, x2
+
+	mov	sp, x0
+
+	bl	plat_init_secondaries
+	bl	secondary_start
+	.size _secondary_entry_el1, . - _secondary_entry_el1
+
+        .global secondary_start
+        .weak   secondary_start
+secondary_start:
+1:
+        b       1b
+	.size secondary_start, . - secondary_start
+
+
 	.global	tbm_fdt
 	.section .bss
 tbm_fdt:
