@@ -28,7 +28,19 @@ struct ronaldo_version
 static inline struct ronaldo_version ronaldo_version(void)
 {
 	struct ronaldo_version v;
+#ifdef __aarch64__
+	const unsigned int current_el = aarch64_current_el();
+
+	if (current_el == 3)
+		v.u32 = readl(CSU_VERSION);
+	else {
+		// HAX, we should really be reading this out via EEMI.
+		v.ps_version = 3;
+		v.platform = RDO_SILICON;
+	}
+#else
 	v.u32 = readl(CSU_VERSION);
+#endif
 	return v;
 }
 
