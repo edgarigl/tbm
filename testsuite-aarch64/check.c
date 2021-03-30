@@ -38,8 +38,10 @@ static void a64_test(void)
 
 	printf("%s EL=%d\n", __func__, el);
 	a64_check_idef_ldr(0xeddeeddeeddeULL);
-	a64_check_smc();
-	a64_check_el_switch();
+	if (el == 3) {
+		a64_check_smc();
+		a64_check_el_switch();
+	}
 #ifndef __xen__
 	a64_check_timer();
 	check_mmu();

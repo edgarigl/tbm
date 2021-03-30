@@ -132,6 +132,9 @@ static void plat_setup_mmu(unsigned int el)
 #ifdef __aarch64__
 void plat_setup_freq(void)
 {
+	if (aarch64_current_el() != 3)
+		return;
+
 	if (rdo.freq) {
 		aarch64_msr("cntfrq_el0", rdo.freq);
 	}
@@ -171,19 +174,18 @@ void plat_init_a64(void)
 
 void cortexa53_init(void)
 {
+	const unsigned int current_el = aarch64_current_el();
 	uint64_t r;
+
+	if (current_el != 3)
+		return;
 
 	aarch64_mrs(r, "sctlr_el1");
 	r |= CPUECTLR_SMP;
 	aarch64_msr("sctlr_el1", r);
 	aarch64_mrs(r, "sctlr_el1");
 	ibarrier();
-
-	aarch64_mrs(r, R_CPUACTLR_EL1);
-	aarch64_msr(R_CPUACTLR_EL1, r);
-	aarch64_mrs(r, R_CPUACTLR_EL1);
-	ibarrier();
-	D(printf("Updated CPUACTLR_EL1=%llx\n", r));
+	D(printf("Updated SCTLR_EL1=%llx\n", r));
 
 	aarch64_mrs(r, R_CPUECTLR_EL1);
 	r |= CPUECTLR_SMP;
@@ -191,13 +193,6 @@ void cortexa53_init(void)
 	aarch64_mrs(r, R_CPUECTLR_EL1);
 	ibarrier();
 	D(printf("Updated CPUECTLR_EL1=%llx\n", r));
-
-	aarch64_mrs(r, R_L2CTRL_EL1);
-	mb();
-	aarch64_msr(R_L2CTRL_EL1, r);
-	aarch64_mrs(r, R_L2CTRL_EL1);
-	ibarrier();
-	D(printf("Updated R_L2CTRL_EL1=%llx\n", r));
 }
 #endif
 
@@ -251,6 +246,9 @@ static void release_timestamp_cnt(struct ronaldo_version *v)
 	mb();
 
 #ifdef __aarch64__
+	if (aarch64_current_el() != 3)
+		return;
+
 	rdo.freq = freq;
 	aarch64_msr("cntfrq_el0", rdo.freq);
 #endif
@@ -325,7 +323,8 @@ void plat_init(void)
 	a64_cache_discover(&rdo.caches);
 	cortexa53_init();
 	plat_init_a64();
-	gic_sec_setup();
+	if (aarch64_current_el() == 3)
+		gic_sec_setup();
 
 	/* Catch Serrors.  */
 	local_cpu_serror_ei();

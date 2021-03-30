@@ -356,13 +356,17 @@ static void prep_mmu(struct crt_runner *r, void *user)
 	aarch64_mmu_setup(&tmap->mmu[1], 1, true);
 	D(printf("S12MMU enabled\n"));
 
-	aarch64_mrs(scr, "scr_el3");
-	scr |= SCR_RW | SCR_NS;
-	aarch64_msr("scr_el3", scr);
+	if (aarch64_current_el() == 3) {
+		aarch64_mrs(scr, "scr_el3");
+		scr |= SCR_RW | SCR_NS;
+		aarch64_msr("scr_el3", scr);
+	}
 
-	aarch64_mrs(hcr, "hcr_el2");
-	hcr |= HCR_RW | HCR_VM;
-	aarch64_msr("hcr_el2", hcr);
+	if (aarch64_current_el() >= 2) {
+		aarch64_mrs(hcr, "hcr_el2");
+		hcr |= HCR_RW | HCR_VM;
+		aarch64_msr("hcr_el2", hcr);
+	}
 
 	if (HAVE_SMMU) {
 		/* Setup the SMMU.  */

@@ -121,7 +121,8 @@ void test_gic_bpr(void)
 {
     uint32_t c_ctrl = 0;
 
-    assert(aarch64_current_el() == 3);
+    if(aarch64_current_el() != 3)
+        return;
 
     printf("\n\nGIC BPR tests\n");
 

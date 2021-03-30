@@ -630,7 +630,8 @@ static void el1_entry(void *arg)
 
 void gic_test(const char * test_name, const struct test_info *info)
 {
-    assert(aarch64_current_el() == 3);
+    if (aarch64_current_el() != 3)
+        return;
 
     local_cpu_fiq_di();
     local_cpu_di();
