@@ -60,7 +60,7 @@ void check_psci(void) {
 	check_psci_core(1);
 	check_psci_core(2);
 	check_psci_core(3);
-	for (i = 0; i < 400; i++) {
+	for (i = 0; i < 2 * 1000; i++) {
 		unsigned int cpu = (rand() % 3) + 1;
 		check_psci_core(cpu);
 	}
