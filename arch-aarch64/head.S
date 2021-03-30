@@ -122,8 +122,8 @@ _secondary_entry_head:
 	mrs     x2, mpidr_el1
 	and	x2, x2, #0x3
 	add	x2, x2, #1
-	lsl	x2, x2, #10
-#	add	x0, x0, x2
+	lsl	x2, x2, #11
+	add	x0, x0, x2
 
 	mov	sp, x0
 
@@ -150,8 +150,8 @@ _secondary_entry_el1:
 	mrs     x2, mpidr_el1
 	and	x2, x2, #0x3
 	add	x2, x2, #1
-	lsl	x2, x2, #10
-#	add	x0, x0, x2
+	lsl	x2, x2, #11
+	add	x0, x0, x2
 
 	mov	sp, x0
 
@@ -174,6 +174,6 @@ tbm_fdt:
 
 dummy_stack_end:
 	.balign	32
-	.skip	4 * 1024
+	.skip	8 * 1024
 dummy_stack_top:
 
