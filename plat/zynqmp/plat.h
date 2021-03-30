@@ -6,3 +6,4 @@ struct alloc_areas {
 };
 
 struct alloc_areas plat_mem;
+void plat_init_secondaries(void);
