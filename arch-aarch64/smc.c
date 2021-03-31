@@ -81,6 +81,18 @@ uintptr_t aarch64_psci_off(uint64_t id, uint64_t cpu)
 	return 0;
 }
 
+uintptr_t aarch64_psci_self_suspend(uint64_t id)
+{
+	int cpu;
+
+	D(printf("%s: id=%llx cpu=%lld\n", __func__, id));
+
+	aarch64_mrs(cpu, "mpidr_el1");
+	cpu &= 0xff;
+	plat_psci_cpu_off(cpu);
+	return 0;
+}
+
 uintptr_t aarch64_smc_not(uint64_t id, uint64_t v64)
 {
 	return ~v64;
@@ -134,7 +146,7 @@ typedef uint64_t (*smc_callback)(uint64_t id,
 
 smc_callback aarch64_smc_psci_handlers[] = {
 	[SMC_PSCI_CPU_ON & 0xffff] = (smc_callback) aarch64_psci_on,
-	[SMC_PSCI_CPU_OFF & 0xffff] = (smc_callback) aarch64_psci_off,
+	[SMC_PSCI_CPU_OFF & 0xffff] = (smc_callback) aarch64_psci_self_suspend,
 };
 
 smc_callback aarch64_smc_oem_handlers[] = {
