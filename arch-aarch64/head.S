@@ -1,6 +1,6 @@
 #include "aarch64-asm.h"
 
-#	.section .vectors, "ax", @progbits
+	.section .vectors, "ax", @progbits
 	.balign 32
 	.global vectors
 vectors:

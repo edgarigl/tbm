@@ -75,4 +75,8 @@ SECTIONS
 
 	/DISCARD/ : { *(.note.gnu.build-id) }
 	/DISCARD/ : { *(.eh_frame) }
+	/DISCARD/ : {
+		*(.interp .dynamic)
+		*(.dynsym .dynstr .hash .gnu.hash)
+	}
 }
