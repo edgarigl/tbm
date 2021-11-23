@@ -26,7 +26,7 @@ static inline enum aarch64_el aarch64_current_el(void)
 void aarch64_drop_el(const enum aarch64_el el, bool stack_h);
 void aarch64_raise_el(unsigned int target_el);
 
-unsigned int aarch64_hel;
+extern unsigned int aarch64_hel;
 static inline unsigned int aarch64_get_highest_el(void)
 {
 	return aarch64_hel;

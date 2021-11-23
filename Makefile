@@ -71,6 +71,8 @@ OPTFLAGS += -ftest-coverage
 
 CFLAGS  += $(OPTFLAGS)
 CFLAGS  += -ftest-coverage
+CFLAGS  += -Wno-array-bounds
+CFLAGS  += -Wno-unused-const-variable
 #CFLAGS  += -Werror
 CPPFLAGS += -D__tbm__
 CPPFLAGS += -D__BOARD__="$(BOARD_)" -D__UNIT__="$(UNITNAME)"

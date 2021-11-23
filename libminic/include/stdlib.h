@@ -42,7 +42,7 @@ struct alloc_ctx {
 #endif
 };
 
-struct alloc_ctx _alloc_default_ctx;
+extern struct alloc_ctx _alloc_default_ctx;
 
 static inline struct alloc_ctx * _alloc_get_default_ctx(void)
 {

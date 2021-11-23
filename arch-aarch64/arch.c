@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "sys.h"
 
+unsigned int aarch64_hel;
+
 __attribute__ ((weak)) void __arch_early_init(void)
 {
 	extern char vectors;
