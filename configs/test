@@ -5,6 +5,8 @@ TEST_CONFIGS += configs/vexpress-a32.cfg
 TEST_CONFIGS += configs/vexpress-a64.cfg
 TEST_CONFIGS += configs/zynqmp-apu.cfg
 TEST_CONFIGS += configs/versal-apu.cfg
+TEST_CONFIGS += configs/versal-apu-release-rpu.cfg
+TEST_CONFIGS += configs/versal-rpu.cfg
 
 foreach_cfg = for c in $(1); do $(2) CFG=$$c $(3); done
 

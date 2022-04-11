@@ -1,0 +1,19 @@
+#ifndef __PLAT_VERSAL_H__
+#define __PLAT_VERSAL_H__
+
+#include "versal-fpd-memmap.dtsh"
+#include "versal-lpd-memmap.dtsh"
+#include "versal-iou-memmap.dtsh"
+#include "versal-pmc-memmap.dtsh"
+#include "versal-psm-memmap.dtsh"
+#include "versal-npi-memmap.dtsh"
+#include "versal-top-memmap.dtsh"
+
+#define MM_XRAM MM_OCM2
+#define MM_XRAM_SIZE MM_OCM2_SIZE
+#define MM_XRAM_MEM MM_OCM2_MEM
+#define MM_XRAM_MEM_SIZE MM_OCM2_MEM_SIZE
+#define MM_XRAM_XMPU MM_OCM2_XMPU
+#define MM_XRAM_XMPU_SIZE MM_OCM2_XMPU_SIZE
+
+#endif

@@ -44,6 +44,13 @@ The final binaries can be found in the build/* dir.
 qemu-system-aarch64 -M xlnx-versal-virt -serial stdio -display none -kernel build/versal/apu/ctest-bare
 ```
 
+### RPU
+
+We need to load a small application for the APU that releases the RPU from reset.
+```
+qemu-system-aarch64 -M xlnx-versal-virt -serial stdio -display none -kernel build/versal/apu_release_rpu/ctest-bare -device loader,file=./build/versal/rpu/ctest-bare,cpu-num=2
+```
+
 ## ZynqMP
 
 ### APU
