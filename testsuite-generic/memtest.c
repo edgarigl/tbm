@@ -35,7 +35,7 @@ void tbm_memtest(phys_addr_t addr, uint64_t len)
 		v = 0xFFFFFFFFU;
 		test_mem_pattern(addr + i, v);
 
-		for (bit = 0; i < 32; i++) {
+		for (bit = 0; bit < 32; bit++) {
 			// Turn off one bit at a time.
 			v ^= (1 << bit);
 			writel(addr + i, v);
