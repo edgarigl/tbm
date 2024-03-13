@@ -87,7 +87,7 @@ make CFG=configs/ariane.cfg
 
 ### RISCv64 on QEMU
 ```
-qemu-system-riscv64 -M virt -m 256M -serial stdio -display none \
+qemu-system-riscv64 -M virt -m 256M -serial stdio -display none -bios none \
 	-device loader,file=./build/ariane_soc/ctest-bare,cpu-num=0
 ```
 
