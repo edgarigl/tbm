@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "sys.h"
 
-long long g_x;
-long long *gp_x;
+static long long g_x;
+static long long *gp_x;
 
 #if 1
 long long _check_ll_const_to_reg(void) __attribute__ ((noinline));

@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include "sys.h"
 
-double g_x;
-double *gp_x;
+static double g_x;
+static double *gp_x;
 
 double _check_df_const_to_reg(void) __attribute__ ((noinline));
 double _check_df_const_to_reg(void)
