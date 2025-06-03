@@ -42,8 +42,8 @@ static void a64_test(void)
 		a64_check_smc();
 		a64_check_el_switch();
 	}
-#ifndef __xen__
 	a64_check_timer();
+#ifndef __xen__
 	check_mmu();
 #endif
 }

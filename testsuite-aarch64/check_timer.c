@@ -8,10 +8,11 @@
 
 static void check_timer_delay(int timer, unsigned int delay, uint64_t offset)
 {
+	unsigned int el = aarch64_current_el();
 	uint32_t ctl;
 	uint64_t cval;
 
-	if (timer == TIMER_VIRT)
+	if (timer == TIMER_VIRT && el >=2 )
 		aarch64_msr("cntvoff_el2", offset);
 
 	a64_write_timer_tval(timer, delay);
@@ -68,7 +69,7 @@ static void check_timer(int timer)
 	}
 #if 0
 	for (i = 0; i < 8; i++) {
-		delay = rand() & 0x7fffffff;
+		delay = rand() & 0x7ffffff;
 		offset = rand64();
 		check_timer_delay(timer, delay, offset);
 	}
@@ -77,11 +78,12 @@ static void check_timer(int timer)
 
 static bool check_cnt(int timer)
 {
+	unsigned int el = aarch64_current_el();
 	uint64_t cnt, prev, offset;
 	unsigned int i;
 
 	offset = rand64();
-	if (timer == TIMER_VIRT)
+	if (timer == TIMER_VIRT && el >=2 )
 		aarch64_msr("cntvoff_el2", offset);
 
 	prev = a64_read_timer_cnt(timer);
@@ -107,13 +109,14 @@ void a64_check_timer(void)
 	struct {
 		int timer;
 		const char *name;
+		int el;
 		bool works;
 	} timers[] = {
-		{ TIMER_PHYS, "phys" },
-		{ TIMER_VIRT, "virt" },
-		{ TIMER_HYP, "hyp" },
+		{ TIMER_PHYS, "phys", 1 },
+		{ TIMER_VIRT, "virt", 1 },
+		{ TIMER_HYP, "hyp", 3 },
 #ifndef AARCH64_NO_SEC_TIMER
-		{ TIMER_PHYS_SEC, "phys_sec" },
+		{ TIMER_PHYS_SEC, "phys_sec", 3 },
 #endif
 	};
 	uint32_t scr;
@@ -121,21 +124,23 @@ void a64_check_timer(void)
 	unsigned int i;
 	unsigned int el = aarch64_current_el();
 
-	if (el != 3) {
-		printf("Cant run timer tests in EL%d\n", el);
-		return;
+	assert(el == 3 || el == 1);
+
+	if (el >= 2) {
+		aarch64_mrs(t, "cnthctl_el2");
+		t |= 1;
+		aarch64_msr("cnthctl_el2", t);
 	}
-	assert(el == 3);
 
-	aarch64_mrs(t, "cnthctl_el2");
-	t |= 1;
-	aarch64_msr("cnthctl_el2", t);
-
-	aarch64_mrs(scr, "scr_el3");
-	scr |= SCR_ST | SCR_EA | SCR_RW;
-	scr &= ~SCR_NS;
+	if (el == 3) {
+		aarch64_mrs(scr, "scr_el3");
+		scr |= SCR_ST | SCR_EA | SCR_RW;
+		scr &= ~SCR_NS;
+	}
 
 	for (i = 0; i < ARRAY_SIZE(timers); i++) {
+		if (timers[i].el > el)
+			continue;
 
 		timers[i].works = check_cnt(timers[i].timer);
 		printf("%s: %s works=%d\n", __func__, timers[i].name, timers[i].works);
@@ -150,6 +155,10 @@ void a64_check_timer(void)
 		timer = rand() % ARRAY_SIZE(timers);
 		test = rand() & 1;
 		el1 = rand() & 1;
+
+		if (el == 1)
+			el1 = 1;
+
 		if (!timers[timer].works)
 			continue;
 		printf("%s.", timers[timer].name);
