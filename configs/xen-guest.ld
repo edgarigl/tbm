@@ -18,6 +18,7 @@ SECTIONS
 		*(.rodata)
 		*(.rodata*)
 		*(.fixup)
+		*(.rela*)
 		*(.got)
 		. = ALIGN(8);
 		__fdt_probe_start = .;
