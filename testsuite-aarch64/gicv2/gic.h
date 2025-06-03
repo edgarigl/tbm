@@ -194,10 +194,12 @@ static inline uint32_t gich_read_misr(void)
 }
 #endif
 
+#ifdef GIC_VIFACE_BASE
 static inline uint32_t gich_read_apr(void)
 {
     return readl(GIC_VIFACE_BASE + GICH_APR);
 }
+#endif
 
 void gic_configure(const struct gic_info *info);
 void gic_teardown(const struct gic_info *info);
